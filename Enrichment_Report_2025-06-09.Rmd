@@ -1,0 +1,102 @@
+---
+title: "Gene Enrichment Report"
+author: "Ehsan Zangene"
+date: "`r Sys.Date()`"
+output:
+  pdf_document:
+    toc: true
+    toc_depth: '2'
+  html_document:
+    toc: true
+    toc_depth: 2
+    toc_float: true
+    number_sections: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+## 1. Load Required Libraries
+
+```{r libraries}
+library(readxl)
+library(clusterProfiler)
+library(org.Hs.eg.db)
+library(org.Ce.eg.db)
+library(enrichplot)
+library(ReactomePA)
+library(ggplot2)
+library(dplyr)
+```
+
+## 2. Input Gene Lists
+
+### 2.1 Human Orthologs
+
+```{r load-human}
+file_path_human <- "./30-05-25/List of human orthologs_RNAi screen.xlsx"
+human_df <- read_excel(file_path_human)
+symbol_col <- grep("symbol", names(human_df), ignore.case = TRUE, value = TRUE)
+human_df <- human_df %>% rename(GeneSymbolColumn = all_of(symbol_col))
+human_symbols <- human_df$GeneSymbolColumn
+human_map <- bitr(human_symbols, fromType="SYMBOL", toType="ENTREZID", OrgDb=org.Hs.eg.db)
+human_entrez <- unique(human_map$ENTREZID)
+```
+
+### 2.2 Worm Genes
+
+```{r load-worm}
+file_path_worm <- "./06-2024/List of verified genes.xlsx"
+worm_df <- read_excel(file_path_worm)
+wb_col <- grep("WormBase Gene", colnames(worm_df), ignore.case = TRUE, value = TRUE)
+worm_df <- worm_df %>% rename(GeneID = all_of(wb_col))
+worm_map <- bitr(worm_df$GeneID, fromType = "WORMBASE", toType = "ENTREZID", OrgDb = org.Ce.eg.db)
+worm_entrez <- unique(worm_map$ENTREZID)
+```
+
+## 3. Enrichment Analysis
+
+### 3.1 Human GO: Biological Process
+
+```{r human-go-bp}
+ego_bp <- enrichGO(gene = human_entrez, OrgDb = org.Hs.eg.db, keyType = "ENTREZID",
+                   ont = "BP", pAdjustMethod = "BH", pvalueCutoff = 0.05,
+                   qvalueCutoff = 0.2, readable = TRUE)
+dotplot(ego_bp, showCategory = 20) + ggtitle("Human GO Enrichment (Biological Process)")
+```
+
+### 3.2 Human GO: Molecular Function
+
+```{r human-go-mf}
+ego_mf <- enrichGO(gene = human_entrez, OrgDb = org.Hs.eg.db, keyType = "ENTREZID",
+                   ont = "MF", pAdjustMethod = "BH", pvalueCutoff = 0.05,
+                   qvalueCutoff = 0.2, readable = TRUE)
+dotplot(ego_mf, showCategory = 20) + ggtitle("Human GO Enrichment (Molecular Function)")
+```
+
+### 3.3 Human Reactome Pathways
+
+```{r human-reactome}
+ereactome <- enrichPathway(gene = human_entrez, organism = "human",
+                           pvalueCutoff = 0.05, readable = TRUE)
+dotplot(ereactome, showCategory = 20) + ggtitle("Reactome Pathway Enrichment")
+```
+
+### 3.4 C. elegans GO: Biological Process
+
+```{r worm-go-bp}
+ego_ce_bp <- enrichGO(gene = worm_entrez, OrgDb = org.Ce.eg.db, keyType = "ENTREZID",
+                      ont = "BP", pAdjustMethod = "BH", pvalueCutoff = 0.05,
+                      qvalueCutoff = 0.2, readable = TRUE)
+dotplot(ego_ce_bp, showCategory = 20) + ggtitle("C. elegans GO Enrichment (Biological Process)")
+```
+
+## 4. Export Results (Optional)
+
+```{r export-results}
+write.csv(as.data.frame(ego_bp), "Human_GO_BP.csv", row.names = FALSE)
+write.csv(as.data.frame(ego_mf), "Human_GO_MF.csv", row.names = FALSE)
+write.csv(as.data.frame(ereactome), "Human_Reactome.csv", row.names = FALSE)
+write.csv(as.data.frame(ego_ce_bp), "Worm_GO_BP.csv", row.names = FALSE)
+```
