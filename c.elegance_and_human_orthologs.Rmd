@@ -57,6 +57,35 @@ worm_map <- bitr(worm_df$GeneID, fromType = "WORMBASE", toType = "ENTREZID", Org
 worm_entrez <- unique(worm_map$ENTREZID)
 ```
 
+```{r}
+
+# all mapped Entrez IDs
+mapped_entrez <- unique(worm_map$ENTREZID)
+
+# Check GO annotations for those Entrez IDs
+bp_annot <- AnnotationDbi::select(
+  org.Ce.eg.db,
+  keys    = mapped_entrez,
+  keytype = "ENTREZID",
+  columns = c("GO", "ONTOLOGY")
+)
+
+# Keep only BP ontology
+bp_annot <- bp_annot %>% 
+  filter(ONTOLOGY == "BP" & !is.na(GO))
+
+# Entrez IDs that have at least one BP GO term
+genes_with_bp <- unique(bp_annot$ENTREZID)
+
+length(genes_with_bp)
+# should be 26
+
+# Which 4 mapped genes have NO BP annotation?
+no_bp_entrez <- setdiff(mapped_entrez, genes_with_bp)
+no_bp_entrez
+```
+
+
 
 ### 3.4 C. elegans GO: Biological Process
 
