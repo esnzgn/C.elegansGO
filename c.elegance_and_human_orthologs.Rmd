@@ -1,5 +1,5 @@
 ---
-title: "Gene Enrichment Report"
+title: "Functional Gene Enrichment Report"
 output:
   pdf_document:
     toc: true
