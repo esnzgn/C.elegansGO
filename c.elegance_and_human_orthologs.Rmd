@@ -1,7 +1,5 @@
 ---
 title: "Gene Enrichment Report"
-author: "Ehsan Zangene"
-date: "`r Sys.Date()`"
 output:
   pdf_document:
     toc: true
