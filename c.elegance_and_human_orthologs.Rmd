@@ -35,21 +35,10 @@ library(forcats)
 ```
 
 ## 2. Input Gene Lists
-
-# ```{r load-human}
-# file_path_human <- "./30-05-25/List of human orthologs_RNAi screen.xlsx"
-# human_df <- read_excel(file_path_human)
-# symbol_col <- grep("symbol", names(human_df), ignore.case = TRUE, value = TRUE)
-# human_df <- human_df %>% rename(GeneSymbolColumn = all_of(symbol_col))
-# human_symbols <- human_df$GeneSymbolColumn
-# human_map <- bitr(human_symbols, fromType="SYMBOL", toType="ENTREZID", OrgDb=org.Hs.eg.db)
-# human_entrez <- unique(human_map$ENTREZID)
-# ```
-
 ### 2.1 Worm Genes
 
 ```{r load-worm}
-file_path_worm <- "./06-2024/List of verified genes.xlsx"
+file_path_worm <- "./06-2024/List of verified genes.xlsx" # Table 1 of the manuscript is inside the file "List of verified genes.xlsx" as input of the enrichment analysis here
 worm_df <- read_excel(file_path_worm)
 wb_col <- grep("WormBase Gene", colnames(worm_df), ignore.case = TRUE, value = TRUE)
 worm_df <- worm_df %>% rename(GeneID = all_of(wb_col))
@@ -142,7 +131,7 @@ dotplot_2nd <- ggplot(plot_data, aes(x = log10_padj, y = Description)) +
     plot.title = element_text(hjust = 0.5),
     panel.border = element_rect(color = "black", fill = NA, linewidth = 0.8)
   )
-dotplot_2nd
+# dotplot_2nd #One can find the final output of dotplot in manscript figure 2 panel a 
 ```
 
 ```{r}
@@ -195,7 +184,7 @@ dotplotCC_2nd <- ggplot(plot_data, aes(x = log10_padj, y = Description)) +
     plot.margin = margin(15, 15, 15, 15)  # Top, Right, Bottom, Left (all in 'pt')
   )
 
-dotplotCC_2nd
+# dotplotCC_2nd # dotplot_2nd #One can find the final output of dotplot in manscript figure 2 panel b
 
 ```
 
@@ -211,25 +200,3 @@ ggsave("./output_plots/dotplot_2nd_C.e.Cellular_Compartment.pdf", dotplotCC_2nd,
 write.csv(as.data.frame(ego_ce_bp), "Worm_GO_BP.csv", row.names = FALSE)
 ```
 
-
-## 5. Materials and Methods
-
-### Gene List Curation  
-Two gene sets were curated for functional enrichment analysis. The first consisted of 33 *Caenorhabditis elegans* genes, verified through a targeted RNAi screening and identified by their WormBase Gene IDs. The second was a list of 73 corresponding human orthologs provided by the HGNC symbols, curated from a cross-species homology assessment.
-
-### Functional Annotation and Enrichment Analysis  
-Functional enrichment analyses were performed using R (v4.3.1) with the `clusterProfiler` (v4.8.1), `org.Hs.eg.db`, `org.Ce.eg.db`, and `ReactomePA` (v1.44.0) Bioconductor packages. WormBase Gene IDs were mapped to Entrez Gene IDs using `bitr()` with the `org.Ce.eg.db` annotation. Similarly, human gene symbols were converted to Entrez IDs using `org.Hs.eg.db`.
-
-For both species, Gene Ontology (GO) enrichment was conducted separately for the Biological Process (BP) ontology, using `enrichGO()` with Benjamini-Hochberg correction (adjusted *p* < 0.05). Human orthologs were additionally subjected to Molecular Function (MF) GO analysis and Reactome pathway enrichment via `enrichGO()` and `enrichPathway()` respectively. KEGG pathway analysis was attempted but yielded no significant enrichments for either species under the set cutoff thresholds.
-
-### Visualization  
-Top enriched categories (up to 20 terms) were visualized using `dotplot()` from the `enrichplot` package. All enrichment terms reported in the figures met a false discovery rate (FDR) threshold of *q* < 0.2.
-
-
-## 6. Conclusions
-
-Our functional enrichment analysis revealed that the human orthologs of *C. elegans* genes identified in the RNAi screen were significantly associated with antiviral defense mechanisms and protein ubiquitination pathways. The most enriched biological processes included "defense response to virus" and "regulation of viral entry into host cells", primarily driven by TRIM family genes. Molecular function analysis underscored ubiquitin ligase activity as a key functional hallmark.
-
-Reactome pathway analysis further supported these findings, highlighting "Interferon gamma signaling" and "Ubiquitination & Proteasome degradation" as the most prominent enriched pathways. In contrast, KEGG enrichment yielded no significant terms, suggesting a potential bias in pathway representation or limited coverage of TRIM-centric antiviral pathways in KEGG.
-
-In the *C. elegans* dataset, GO enrichment for biological processes indicated roles in "dense core vesicle exocytosis" and "calcium ion-regulated neurotransmitter release", suggesting involvement in neurosecretory or synaptic functions. These findings provide mechanistic insight into the biological roles of candidate genes from the screen and their conserved relevance across species.
