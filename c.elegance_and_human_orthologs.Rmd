@@ -38,8 +38,8 @@ library(forcats)
 ### 2.1 Worm Genes
 
 ```{r load-worm}
-file_path_worm <- "./06-2024/List of verified genes.xlsx" # Table 1 of the manuscript is inside the file 
-# "List of verified genes.xlsx" as input of the enrichment analysis here
+# Table 1 is inside the file "List of verified genes.xlsx" as input of the enrichment analysis here
+file_path_worm <- "./06-2024/List of verified genes.xlsx" 
 worm_df <- read_excel(file_path_worm)
 wb_col <- grep("WormBase Gene", colnames(worm_df), ignore.case = TRUE, value = TRUE)
 worm_df <- worm_df %>% rename(GeneID = all_of(wb_col))
