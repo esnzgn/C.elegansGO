@@ -38,7 +38,8 @@ library(forcats)
 ### 2.1 Worm Genes
 
 ```{r load-worm}
-file_path_worm <- "./06-2024/List of verified genes.xlsx" # Table 1 of the manuscript is inside the file "List of verified genes.xlsx" as input of the enrichment analysis here
+file_path_worm <- "./06-2024/List of verified genes.xlsx" # Table 1 of the manuscript is inside the file 
+# "List of verified genes.xlsx" as input of the enrichment analysis here
 worm_df <- read_excel(file_path_worm)
 wb_col <- grep("WormBase Gene", colnames(worm_df), ignore.case = TRUE, value = TRUE)
 worm_df <- worm_df %>% rename(GeneID = all_of(wb_col))
@@ -112,7 +113,8 @@ custom_order <- c(
 # Step 3: Convert Description to factor with custom levels
 plot_data <- plot_data %>%
   filter(Description %in% custom_order) %>%
-  mutate(Description = factor(Description, levels = rev(custom_order)))  # reverse for top-to-bottom
+  mutate(Description = factor(Description, levels = rev(custom_order)))  
+# reverse for top-to-bottom
 
 # Step 4: Plot
 dotplot_2nd <- ggplot(plot_data, aes(x = log10_padj, y = Description)) +
@@ -131,7 +133,8 @@ dotplot_2nd <- ggplot(plot_data, aes(x = log10_padj, y = Description)) +
     plot.title = element_text(hjust = 0.5),
     panel.border = element_rect(color = "black", fill = NA, linewidth = 0.8)
   )
-# dotplot_2nd #One can find the final output of dotplot in manscript figure 2 panel a 
+# dotplot_2nd #One can find the final output of dotplot 
+# in manscript figure 2 panel a 
 ```
 
 ```{r}
@@ -142,7 +145,8 @@ ggsave("./output_plots/dotplot_2nd_C.e.Biological_Process.pdf", dotplot_2nd, dpi
 ego_ce_cc <- enrichGO(gene = worm_entrez, OrgDb = org.Ce.eg.db, keyType = "ENTREZID",
                       ont = "CC", pAdjustMethod = "BH", pvalueCutoff = 0.05,
                       qvalueCutoff = 0.2, readable = TRUE)
-# dotplot(ego_ce_cc, showCategory = 20) + ggtitle("C. elegans GO Enrichment (Biological Process)")
+# dotplot(ego_ce_cc, showCategory = 20) + ggtitle("C. elegans 
+# GO Enrichment (Biological Process)")
 ```
 
 ```{r}
@@ -184,7 +188,8 @@ dotplotCC_2nd <- ggplot(plot_data, aes(x = log10_padj, y = Description)) +
     plot.margin = margin(15, 15, 15, 15)  # Top, Right, Bottom, Left (all in 'pt')
   )
 
-# dotplotCC_2nd # dotplot_2nd #One can find the final output of dotplot in manscript figure 2 panel b
+# dotplotCC_2nd # dotplot_2nd #One can find the final 
+# output of dotplot in manscript figure 2 panel b
 
 ```
 
