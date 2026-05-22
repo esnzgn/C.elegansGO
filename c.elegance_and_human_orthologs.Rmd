@@ -18,17 +18,27 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 ## 1. Load Required Libraries
 
 ```{r libraries}
-library(readxl)
-library(clusterProfiler)
-library(org.Hs.eg.db)
-library(org.Ce.eg.db)
-library(enrichplot)
-library(ReactomePA)
-library(ggplot2)
-library(dplyr)
-library(ggplot2)
-library(dplyr)
-library(forcats)
+packages <- c(
+  "readxl"
+  ,"clusterProfiler"
+  ,"org.Hs.eg.db"
+  ,"org.Ce.eg.db"
+  ,"enrichplot"
+  ,"ReactomePA"
+  ,"ggplot2"
+  ,"dplyr"
+  ,"ggplot2"
+  ,"forcats"
+  ,"dplyr")
+
+# Install only what's missing (BiocManager handles both CRAN and Bioconductor)
+missing_pkgs <- packages[!sapply(packages, requireNamespace, quietly = TRUE)]
+if (length(missing_pkgs) > 0) {
+  BiocManager::install(missing_pkgs)
+}
+
+# Load all
+invisible(lapply(packages, library, character.only = TRUE))
 
 ```
 
@@ -38,7 +48,11 @@ library(forcats)
 ```{r load-worm}
 # Table 1 is inside the file "List of verified genes.xlsx" as input of the enrichment analysis here
 file_path_worm <- "./06-2024/List of verified genes.xlsx" 
+worm_df_old <- read_excel(file_path_worm)
+
+file_path_worm <- "./05-2026/list of genes_resubmission.xlsx" 
 worm_df <- read_excel(file_path_worm)
+
 wb_col <- grep("WormBase Gene", colnames(worm_df), ignore.case = TRUE, value = TRUE)
 worm_df <- worm_df %>% rename(GeneID = all_of(wb_col))
 worm_map <- bitr(worm_df$GeneID, fromType = "WORMBASE", toType = "ENTREZID", OrgDb = org.Ce.eg.db)
@@ -95,23 +109,24 @@ ego_ce_bp <- enrichGO(gene = worm_entrez, OrgDb = org.Ce.eg.db, keyType = "ENTRE
 # Step 1: Extract and modify the plot data
 plot_data <- ego_ce_bp@result %>%
   arrange(p.adjust) %>%
-  slice(1:6) %>%
   mutate(log10_padj = -log10(p.adjust))
+  # slice(1:6) %>%
+
 
 # Step 2: Manually define your desired order for y-axis
-custom_order <- c(
-  "calcium ion-regulated exocytosis of neurotransmitter",
-  "neuronal dense core vesicle exocytosis",
-  "presynaptic dense core vesicle exocytosis",
-  "vesicle-mediated transport to the plasma membrane",
-  "dense core granule exocytosis",
-  "regulation of protein localization"
-)
+# custom_order <- c(
+#   "calcium ion-regulated exocytosis of neurotransmitter",
+#   "neuronal dense core vesicle exocytosis",
+#   "presynaptic dense core vesicle exocytosis",
+#   "vesicle-mediated transport to the plasma membrane",
+#   "dense core granule exocytosis",
+#   "regulation of protein localization"
+# )
 
 # Step 3: Convert Description to factor with custom levels
 plot_data <- plot_data %>%
-  filter(Description %in% custom_order) %>%
   mutate(Description = factor(Description, levels = rev(custom_order)))  
+  # filter(Description %in% custom_order) %>%
 # reverse for top-to-bottom
 
 # Step 4: Plot
