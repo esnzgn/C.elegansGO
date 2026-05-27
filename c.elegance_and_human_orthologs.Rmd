@@ -967,6 +967,64 @@ enable GSEA-based enrichment against the *C. elegans* transcriptome.
 
 ---
 
+# Brief Manuscript Text
+
+## Materials and Methods
+
+Functional enrichment analysis was performed on the curated *C. elegans* gene
+list using Gene Ontology (GO) annotations. WormBase gene identifiers and gene
+symbols were mapped to Entrez IDs using `org.Ce.eg.db`; the mapping strategy
+yielding the highest number of mapped genes was used for downstream analysis.
+A total of 18 genes were mapped and used as the query set.
+
+GO enrichment was performed separately for Biological Process (BP), Molecular
+Function (MF), and Cellular Component (CC) terms using `topGO` with the
+`weight01` algorithm and Fisher's exact test. Terms with `weight01` *p* < 0.05
+were considered enriched. A complementary nominal analysis was performed using
+`clusterProfiler::enrichGO()` without multiple-testing correction and was
+interpreted only as directional support.
+
+## Results
+
+The analysis identified enriched GO terms across all three ontologies. BP
+enrichment detected 28 terms with `weight01` *p* < 0.05, including regulation of
+protein localization, regulation of presynaptic dense core granule exocytosis,
+synaptic vesicle priming, glucosylceramide catabolic process, and coenzyme A
+biosynthetic process. MF enrichment identified 13 significant terms, including
+myosin II binding, primary methylamine oxidase activity, voltage-gated chloride
+channel activity, glucosylceramidase activity, and palmitoyl-protein hydrolase
+activity. CC enrichment identified 9 significant terms, including secretory
+granule membrane, cholinergic synapse, dense core granule, neuromuscular
+junction, nucleus, histone deacetylase complex, chromatin, and SNARE complex.
+
+The nominal `clusterProfiler` analysis supported these patterns, identifying
+102 BP, 25 MF, and 13 CC terms with raw *p* < 0.05. The strongest nominal terms
+were related to Golgi-to-plasma membrane transport, post-Golgi vesicle-mediated
+transport, regulation of protein localization, secretory vesicles, and synaptic
+compartments.
+
+## Discussion
+
+Together, the enrichment results suggest that the analyzed *C. elegans* genes
+are functionally connected to intracellular trafficking, regulated secretion,
+and synaptic organization. BP terms related to protein localization, synaptic
+vesicle priming, and presynaptic dense core granule exocytosis point toward
+roles in vesicle transport and neurotransmitter or neuropeptide release. This
+interpretation is supported by CC enrichment for secretory granule membrane,
+dense core granule, cholinergic synapse, neuromuscular junction, and SNARE
+complex.
+
+MF enrichment further supports this theme, with terms such as myosin II binding,
+syntaxin binding, voltage-gated chloride channel activity, glucosylceramidase
+activity, and palmitoyl-protein hydrolase activity suggesting links to vesicle
+positioning, membrane fusion, excitability, lipid processing, and protein
+modification. Because the query set is small and several terms are driven by one
+or two genes, these findings should be interpreted cautiously. Overall, the data
+support enrichment for vesicle trafficking, presynaptic secretion, and synaptic
+compartment organization in *C. elegans*.
+
+---
+
 # Session Information
 
 ```{r session-info, echo=FALSE}
