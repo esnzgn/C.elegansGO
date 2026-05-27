@@ -1,0 +1,1058 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\documentclass[
+  11pt,
+]{article}
+\usepackage{xcolor}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{amsmath,amssymb}
+\setcounter{secnumdepth}{5}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\usepackage{longtable,booktabs,array}
+\newcounter{none} % for unnumbered tables
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+% Allow footnotes in longtable head/foot
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
+\usepackage{graphicx}
+\makeatletter
+\newsavebox\pandoc@box
+\newcommand*\pandocbounded[1]{% scales image to fit in text height/width
+  \sbox\pandoc@box{#1}%
+  \Gscale@div\@tempa{\textheight}{\dimexpr\ht\pandoc@box+\dp\pandoc@box\relax}%
+  \Gscale@div\@tempb{\linewidth}{\wd\pandoc@box}%
+  \ifdim\@tempb\p@<\@tempa\p@\let\@tempa\@tempb\fi% select the smaller of both
+  \ifdim\@tempa\p@<\p@\scalebox{\@tempa}{\usebox\pandoc@box}%
+  \else\usebox{\pandoc@box}%
+  \fi%
+}
+% Set default figure placement to htbp
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{wrapfig}
+\usepackage{float}
+\usepackage{colortbl}
+\usepackage{pdflscape}
+\usepackage{tabu}
+\usepackage{threeparttable}
+\usepackage{threeparttablex}
+\usepackage[normalem]{ulem}
+\usepackage{makecell}
+\usepackage{xcolor}
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+\hypersetup{
+  pdftitle={C. elegans GO Enrichment Analysis},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\title{C. elegans GO Enrichment Analysis}
+\usepackage{etoolbox}
+\makeatletter
+\providecommand{\subtitle}[1]{% add subtitle to \maketitle
+  \apptocmd{\@title}{\par {\large #1 \par}}{}{}
+}
+\makeatother
+\subtitle{Biological Process, Molecular Function \& Cellular Component}
+\author{}
+\date{\vspace{-2.5em}May 27, 2026}
+
+\begin{document}
+\maketitle
+
+{
+\setcounter{tocdepth}{3}
+\tableofcontents
+}
+\section{Background and Rationale}\label{background-and-rationale}
+
+This report presents GO term enrichment analysis for a list of \emph{C.
+elegans} genes using the \textbf{topGO} package (Alexa \& Rahnenführer
+2023). Standard over-representation analysis with Benjamini--Hochberg
+(BH) correction is not appropriate for small gene lists: with
+\textasciitilde15 mapped query genes tested against \textgreater{} 3,500
+BP terms, the minimum achievable BH-adjusted \emph{p}-value exceeds 1 by
+arithmetic alone (\[p_{\min} \times m > 1\] when \(m\) is large). The
+\texttt{topGO} \texttt{weight01} algorithm resolves this by propagating
+significance through the GO hierarchy --- parent terms are down-weighted
+when their children are already significant --- substantially reducing
+the effective number of independent tests. This approach is widely used
+in the \emph{C. elegans} literature for focused gene lists.
+
+For comparison, nominal Fisher's exact \emph{p}-values from standard
+\texttt{enrichGO} (clusterProfiler) are also reported.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{Setup}\label{setup}
+
+\subsection{Packages}\label{packages}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{required\_pkgs }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}
+  \StringTok{"readxl"}\NormalTok{, }\StringTok{"dplyr"}\NormalTok{, }\StringTok{"ggplot2"}\NormalTok{, }\StringTok{"forcats"}\NormalTok{, }\StringTok{"scales"}\NormalTok{, }\StringTok{"stringr"}\NormalTok{,}
+  \StringTok{"clusterProfiler"}\NormalTok{, }\StringTok{"org.Ce.eg.db"}\NormalTok{, }\StringTok{"AnnotationDbi"}\NormalTok{,}
+  \StringTok{"topGO"}\NormalTok{, }\StringTok{"Rgraphviz"}\NormalTok{, }\StringTok{"knitr"}\NormalTok{, }\StringTok{"kableExtra"}
+\NormalTok{)}
+
+\NormalTok{missing\_pkgs }\OtherTok{\textless{}{-}}\NormalTok{ required\_pkgs[}
+  \SpecialCharTok{!}\FunctionTok{sapply}\NormalTok{(required\_pkgs, requireNamespace, }\AttributeTok{quietly =} \ConstantTok{TRUE}\NormalTok{)}
+\NormalTok{]}
+\ControlFlowTok{if}\NormalTok{ (}\FunctionTok{length}\NormalTok{(missing\_pkgs) }\SpecialCharTok{\textgreater{}} \DecValTok{0}\NormalTok{) \{}
+\NormalTok{  BiocManager}\SpecialCharTok{::}\FunctionTok{install}\NormalTok{(missing\_pkgs, }\AttributeTok{ask =} \ConstantTok{FALSE}\NormalTok{)}
+\NormalTok{\}}
+\FunctionTok{invisible}\NormalTok{(}\FunctionTok{lapply}\NormalTok{(required\_pkgs, library, }\AttributeTok{character.only =} \ConstantTok{TRUE}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{Gene Input and ID Mapping}\label{gene-input-and-id-mapping}
+
+\subsection{Load Gene List}\label{load-gene-list}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{file\_path\_worm }\OtherTok{\textless{}{-}} \StringTok{"./05{-}2026/list of genes\_resubmission.xlsx"}
+\NormalTok{worm\_df }\OtherTok{\textless{}{-}} \FunctionTok{read\_excel}\NormalTok{(file\_path\_worm)}
+
+\CommentTok{\# Detect WormBase Gene ID column}
+\NormalTok{wb\_col }\OtherTok{\textless{}{-}} \FunctionTok{grep}\NormalTok{(}\StringTok{"WormBase.*Gene|WBGene"}\NormalTok{, }\FunctionTok{colnames}\NormalTok{(worm\_df),}
+               \AttributeTok{ignore.case =} \ConstantTok{TRUE}\NormalTok{, }\AttributeTok{value =} \ConstantTok{TRUE}\NormalTok{)[}\DecValTok{1}\NormalTok{]}
+\NormalTok{sym\_col }\OtherTok{\textless{}{-}} \FunctionTok{grep}\NormalTok{(}\StringTok{"\^{}Gene$|Gene.*[Ss]ymbol|[Ss]ymbol|gene.*name"}\NormalTok{, }\FunctionTok{colnames}\NormalTok{(worm\_df),}
+                \AttributeTok{ignore.case =} \ConstantTok{TRUE}\NormalTok{, }\AttributeTok{value =} \ConstantTok{TRUE}\NormalTok{)[}\DecValTok{1}\NormalTok{]}
+
+\FunctionTok{cat}\NormalTok{(}\StringTok{"WormBase column detected :"}\NormalTok{, wb\_col,  }\StringTok{"}\SpecialCharTok{\textbackslash{}n}\StringTok{"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## WormBase column detected : WormBase Gene ID
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{cat}\NormalTok{(}\StringTok{"Gene symbol column detected:"}\NormalTok{, sym\_col, }\StringTok{"}\SpecialCharTok{\textbackslash{}n}\StringTok{"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Gene symbol column detected: Gene
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{cat}\NormalTok{(}\StringTok{"Total input genes          :"}\NormalTok{, }\FunctionTok{nrow}\NormalTok{(worm\_df), }\StringTok{"}\SpecialCharTok{\textbackslash{}n\textbackslash{}n}\StringTok{"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Total input genes          : 18
+\end{verbatim}
+
+\subsection{Mapping Comparison: WormBase ID vs Gene Symbol →
+Entrez}\label{mapping-comparison-wormbase-id-vs-gene-symbol-entrez}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{empty\_map }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}\AttributeTok{ENTREZID =} \FunctionTok{character}\NormalTok{())}
+
+\NormalTok{map\_to\_entrez }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(ids, from\_type) \{}
+\NormalTok{  ids }\OtherTok{\textless{}{-}} \FunctionTok{na.omit}\NormalTok{(}\FunctionTok{unique}\NormalTok{(ids))}
+  \ControlFlowTok{if}\NormalTok{ (}\FunctionTok{length}\NormalTok{(ids) }\SpecialCharTok{==} \DecValTok{0}\NormalTok{) \{}
+    \FunctionTok{return}\NormalTok{(empty\_map)}
+\NormalTok{  \}}
+
+  \FunctionTok{suppressMessages}\NormalTok{(}
+    \FunctionTok{bitr}\NormalTok{(ids, }\AttributeTok{fromType =}\NormalTok{ from\_type, }\AttributeTok{toType =} \StringTok{"ENTREZID"}\NormalTok{, }\AttributeTok{OrgDb =}\NormalTok{ org.Ce.eg.db)}
+\NormalTok{  )}
+\NormalTok{\}}
+
+\CommentTok{\# {-}{-}{-} WormBase → Entrez {-}{-}{-}}
+\NormalTok{wb\_ids }\OtherTok{\textless{}{-}} \ControlFlowTok{if}\NormalTok{ (}\SpecialCharTok{!}\FunctionTok{is.na}\NormalTok{(wb\_col)) }\FunctionTok{na.omit}\NormalTok{(}\FunctionTok{unique}\NormalTok{(worm\_df[[wb\_col]])) }\ControlFlowTok{else} \FunctionTok{character}\NormalTok{()}
+\NormalTok{map\_wb }\OtherTok{\textless{}{-}} \FunctionTok{map\_to\_entrez}\NormalTok{(wb\_ids, }\StringTok{"WORMBASE"}\NormalTok{)}
+
+\CommentTok{\# {-}{-}{-} Gene Symbol → Entrez {-}{-}{-}}
+\NormalTok{sym\_ids }\OtherTok{\textless{}{-}} \ControlFlowTok{if}\NormalTok{ (}\SpecialCharTok{!}\FunctionTok{is.na}\NormalTok{(sym\_col)) }\FunctionTok{na.omit}\NormalTok{(}\FunctionTok{unique}\NormalTok{(worm\_df[[sym\_col]])) }\ControlFlowTok{else} \FunctionTok{character}\NormalTok{()}
+\NormalTok{map\_sym }\OtherTok{\textless{}{-}} \FunctionTok{map\_to\_entrez}\NormalTok{(sym\_ids, }\StringTok{"SYMBOL"}\NormalTok{)}
+
+\CommentTok{\# {-}{-}{-} Summary table {-}{-}{-}}
+\NormalTok{mapping\_summary }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}
+  \StringTok{\textasciigrave{}}\AttributeTok{ID type}\StringTok{\textasciigrave{}}     \OtherTok{=} \FunctionTok{c}\NormalTok{(}\StringTok{"WormBase (WORMBASE)"}\NormalTok{, }\StringTok{"Gene Symbol (SYMBOL)"}\NormalTok{),}
+  \StringTok{\textasciigrave{}}\AttributeTok{Input genes}\StringTok{\textasciigrave{}} \OtherTok{=} \FunctionTok{c}\NormalTok{(}\FunctionTok{length}\NormalTok{(wb\_ids),  }\FunctionTok{length}\NormalTok{(sym\_ids)),}
+  \StringTok{\textasciigrave{}}\AttributeTok{Mapped}\StringTok{\textasciigrave{}}      \OtherTok{=} \FunctionTok{c}\NormalTok{(}\FunctionTok{length}\NormalTok{(}\FunctionTok{unique}\NormalTok{(map\_wb}\SpecialCharTok{$}\NormalTok{ENTREZID)),}
+                    \FunctionTok{length}\NormalTok{(}\FunctionTok{unique}\NormalTok{(map\_sym}\SpecialCharTok{$}\NormalTok{ENTREZID))),}
+  \StringTok{\textasciigrave{}}\AttributeTok{Mapping rate}\StringTok{\textasciigrave{}}\OtherTok{=} \FunctionTok{c}\NormalTok{(}
+    \FunctionTok{ifelse}\NormalTok{(}\FunctionTok{length}\NormalTok{(wb\_ids) }\SpecialCharTok{\textgreater{}} \DecValTok{0}\NormalTok{,}
+           \FunctionTok{paste0}\NormalTok{(}\FunctionTok{round}\NormalTok{(}\FunctionTok{length}\NormalTok{(}\FunctionTok{unique}\NormalTok{(map\_wb}\SpecialCharTok{$}\NormalTok{ENTREZID)) }\SpecialCharTok{/} \FunctionTok{length}\NormalTok{(wb\_ids) }\SpecialCharTok{*} \DecValTok{100}\NormalTok{, }\DecValTok{1}\NormalTok{), }\StringTok{"\%"}\NormalTok{),}
+           \StringTok{"not found"}\NormalTok{),}
+    \FunctionTok{ifelse}\NormalTok{(}\FunctionTok{length}\NormalTok{(sym\_ids) }\SpecialCharTok{\textgreater{}} \DecValTok{0}\NormalTok{,}
+           \FunctionTok{paste0}\NormalTok{(}\FunctionTok{round}\NormalTok{(}\FunctionTok{length}\NormalTok{(}\FunctionTok{unique}\NormalTok{(map\_sym}\SpecialCharTok{$}\NormalTok{ENTREZID)) }\SpecialCharTok{/} \FunctionTok{length}\NormalTok{(sym\_ids) }\SpecialCharTok{*} \DecValTok{100}\NormalTok{, }\DecValTok{1}\NormalTok{), }\StringTok{"\%"}\NormalTok{),}
+           \StringTok{"not found"}\NormalTok{)}
+\NormalTok{  ),}
+  \AttributeTok{check.names =} \ConstantTok{FALSE}
+\NormalTok{)}
+
+\FunctionTok{kable}\NormalTok{(mapping\_summary, }\AttributeTok{booktabs =} \ConstantTok{TRUE}\NormalTok{, }\AttributeTok{align =} \StringTok{"lrrr"}\NormalTok{,}
+      \AttributeTok{caption =} \StringTok{"Entrez ID mapping rates by input ID type"}\NormalTok{) }\SpecialCharTok{|\textgreater{}}
+  \FunctionTok{kable\_styling}\NormalTok{(}\AttributeTok{latex\_options =} \FunctionTok{c}\NormalTok{(}\StringTok{"hold\_position"}\NormalTok{, }\StringTok{"striped"}\NormalTok{), }\AttributeTok{font\_size =} \DecValTok{10}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begingroup\fontsize{10}{12}\selectfont
+
+\begin{longtable}[t]{lrrr}
+\caption{\label{tab:id-mapping}Entrez ID mapping rates by input ID type}\\
+\toprule
+ID type & Input genes & Mapped & Mapping rate\\
+\midrule
+\cellcolor{gray!10}{WormBase (WORMBASE)} & \cellcolor{gray!10}{18} & \cellcolor{gray!10}{18} & \cellcolor{gray!10}{100\%}\\
+Gene Symbol (SYMBOL) & 18 & 18 & 100\%\\
+\bottomrule
+\end{longtable}
+\endgroup{}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Use whichever approach gives more Entrez IDs}
+\ControlFlowTok{if}\NormalTok{ (}\FunctionTok{length}\NormalTok{(}\FunctionTok{unique}\NormalTok{(map\_sym}\SpecialCharTok{$}\NormalTok{ENTREZID)) }\SpecialCharTok{\textgreater{}} \FunctionTok{length}\NormalTok{(}\FunctionTok{unique}\NormalTok{(map\_wb}\SpecialCharTok{$}\NormalTok{ENTREZID))) \{}
+\NormalTok{  final\_entrez }\OtherTok{\textless{}{-}} \FunctionTok{unique}\NormalTok{(map\_sym}\SpecialCharTok{$}\NormalTok{ENTREZID)}
+\NormalTok{  id\_method    }\OtherTok{\textless{}{-}} \StringTok{"Gene Symbol → Entrez"}
+\NormalTok{\} }\ControlFlowTok{else}\NormalTok{ \{}
+\NormalTok{  final\_entrez }\OtherTok{\textless{}{-}} \FunctionTok{unique}\NormalTok{(map\_wb}\SpecialCharTok{$}\NormalTok{ENTREZID)}
+\NormalTok{  id\_method    }\OtherTok{\textless{}{-}} \StringTok{"WormBase ID → Entrez"}
+\NormalTok{\}}
+\FunctionTok{cat}\NormalTok{(}\StringTok{"Selected mapping method:"}\NormalTok{, id\_method, }\StringTok{"}\SpecialCharTok{\textbackslash{}n}\StringTok{"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Selected mapping method: WormBase ID → Entrez
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{cat}\NormalTok{(}\StringTok{"Query genes for enrichment:"}\NormalTok{, }\FunctionTok{length}\NormalTok{(final\_entrez), }\StringTok{"}\SpecialCharTok{\textbackslash{}n}\StringTok{"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Query genes for enrichment: 18
+\end{verbatim}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{GO Enrichment with topGO}\label{go-enrichment-with-topgo}
+
+topGO requires a \emph{named integer} vector covering \textbf{all}
+annotated genes in the organism, where \texttt{1} = gene of interest and
+\texttt{0} = background.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Build full universe: all C. elegans Entrez IDs annotated in the OrgDb}
+\NormalTok{all\_ce\_entrez }\OtherTok{\textless{}{-}} \FunctionTok{keys}\NormalTok{(org.Ce.eg.db, }\AttributeTok{keytype =} \StringTok{"ENTREZID"}\NormalTok{)}
+
+\CommentTok{\# Named gene vector: 1 for query, 0 for background}
+\NormalTok{gene\_vec }\OtherTok{\textless{}{-}} \FunctionTok{setNames}\NormalTok{(}
+  \FunctionTok{as.integer}\NormalTok{(all\_ce\_entrez }\SpecialCharTok{\%in\%}\NormalTok{ final\_entrez),}
+\NormalTok{  all\_ce\_entrez}
+\NormalTok{)}
+\FunctionTok{cat}\NormalTok{(}\StringTok{"Universe size:"}\NormalTok{, }\FunctionTok{length}\NormalTok{(gene\_vec), }\StringTok{"}\SpecialCharTok{\textbackslash{}n}\StringTok{"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Universe size: 46927
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{cat}\NormalTok{(}\StringTok{"Query genes in universe:"}\NormalTok{, }\FunctionTok{sum}\NormalTok{(gene\_vec), }\StringTok{"}\SpecialCharTok{\textbackslash{}n}\StringTok{"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Query genes in universe: 18
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{gene\_sel }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(x) x }\SpecialCharTok{==} \DecValTok{1}
+
+\CommentTok{\# Build explicit Entrez {-}\textgreater{} GO maps and remove obsolete GO IDs that are present}
+\CommentTok{\# in org.Ce.eg.db but absent from the current GO.db DAG used by topGO.}
+\NormalTok{ce\_go\_annot }\OtherTok{\textless{}{-}}\NormalTok{ AnnotationDbi}\SpecialCharTok{::}\FunctionTok{select}\NormalTok{(}
+\NormalTok{  org.Ce.eg.db,}
+  \AttributeTok{keys =}\NormalTok{ all\_ce\_entrez,}
+  \AttributeTok{keytype =} \StringTok{"ENTREZID"}\NormalTok{,}
+  \AttributeTok{columns =} \FunctionTok{c}\NormalTok{(}\StringTok{"GO"}\NormalTok{, }\StringTok{"ONTOLOGY"}\NormalTok{)}
+\NormalTok{) }\SpecialCharTok{|\textgreater{}}
+\NormalTok{  dplyr}\SpecialCharTok{::}\FunctionTok{filter}\NormalTok{(}\SpecialCharTok{!}\FunctionTok{is.na}\NormalTok{(GO), }\SpecialCharTok{!}\FunctionTok{is.na}\NormalTok{(ONTOLOGY))}
+
+\NormalTok{build\_gene2go }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(ontology) \{}
+\NormalTok{  ancestor\_env }\OtherTok{\textless{}{-}} \FunctionTok{get}\NormalTok{(}\FunctionTok{paste0}\NormalTok{(}\StringTok{"GO"}\NormalTok{, ontology, }\StringTok{"ANCESTOR"}\NormalTok{))}
+\NormalTok{  valid\_go\_ids }\OtherTok{\textless{}{-}} \FunctionTok{keys}\NormalTok{(ancestor\_env)}
+
+\NormalTok{  gene\_go }\OtherTok{\textless{}{-}}\NormalTok{ ce\_go\_annot }\SpecialCharTok{|\textgreater{}}
+\NormalTok{    dplyr}\SpecialCharTok{::}\FunctionTok{filter}\NormalTok{(ONTOLOGY }\SpecialCharTok{==}\NormalTok{ ontology, GO }\SpecialCharTok{\%in\%}\NormalTok{ valid\_go\_ids) }\SpecialCharTok{|\textgreater{}}
+\NormalTok{    dplyr}\SpecialCharTok{::}\FunctionTok{select}\NormalTok{(ENTREZID, GO) }\SpecialCharTok{|\textgreater{}}
+\NormalTok{    dplyr}\SpecialCharTok{::}\FunctionTok{distinct}\NormalTok{()}
+
+  \FunctionTok{split}\NormalTok{(gene\_go, gene\_go}\SpecialCharTok{$}\NormalTok{ENTREZID) }\SpecialCharTok{|\textgreater{}}
+    \FunctionTok{lapply}\NormalTok{(}\ControlFlowTok{function}\NormalTok{(x) }\FunctionTok{unique}\NormalTok{(x}\SpecialCharTok{$}\NormalTok{GO))}
+\NormalTok{\}}
+
+\NormalTok{bp\_gene2go }\OtherTok{\textless{}{-}} \FunctionTok{build\_gene2go}\NormalTok{(}\StringTok{"BP"}\NormalTok{)}
+\NormalTok{mf\_gene2go }\OtherTok{\textless{}{-}} \FunctionTok{build\_gene2go}\NormalTok{(}\StringTok{"MF"}\NormalTok{)}
+\NormalTok{cc\_gene2go }\OtherTok{\textless{}{-}} \FunctionTok{build\_gene2go}\NormalTok{(}\StringTok{"CC"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{Biological Process (BP)}\label{biological-process-bp}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{go\_bp }\OtherTok{\textless{}{-}} \FunctionTok{new}\NormalTok{(}\StringTok{"topGOdata"}\NormalTok{,}
+  \AttributeTok{ontology   =} \StringTok{"BP"}\NormalTok{,}
+  \AttributeTok{allGenes   =}\NormalTok{ gene\_vec,}
+  \AttributeTok{geneSel    =}\NormalTok{ gene\_sel,}
+  \AttributeTok{annot      =}\NormalTok{ annFUN.gene2GO,}
+  \AttributeTok{gene2GO    =}\NormalTok{ bp\_gene2go,}
+  \AttributeTok{nodeSize   =} \DecValTok{3}         \CommentTok{\# min genes per GO term}
+\NormalTok{)}
+
+\NormalTok{res\_bp\_w  }\OtherTok{\textless{}{-}} \FunctionTok{runTest}\NormalTok{(go\_bp, }\AttributeTok{algorithm =} \StringTok{"weight01"}\NormalTok{, }\AttributeTok{statistic =} \StringTok{"fisher"}\NormalTok{)}
+\NormalTok{res\_bp\_cl }\OtherTok{\textless{}{-}} \FunctionTok{runTest}\NormalTok{(go\_bp, }\AttributeTok{algorithm =} \StringTok{"classic"}\NormalTok{,  }\AttributeTok{statistic =} \StringTok{"fisher"}\NormalTok{)}
+
+\NormalTok{n\_bp }\OtherTok{\textless{}{-}} \FunctionTok{min}\NormalTok{(}\DecValTok{100}\NormalTok{, }\FunctionTok{length}\NormalTok{(}\FunctionTok{score}\NormalTok{(res\_bp\_w)))}
+\NormalTok{bp\_table }\OtherTok{\textless{}{-}} \FunctionTok{GenTable}\NormalTok{(}
+\NormalTok{  go\_bp,}
+  \AttributeTok{weight01 =}\NormalTok{ res\_bp\_w,}
+  \AttributeTok{classic  =}\NormalTok{ res\_bp\_cl,}
+  \AttributeTok{orderBy  =} \StringTok{"weight01"}\NormalTok{,}
+  \AttributeTok{ranksOf  =} \StringTok{"classic"}\NormalTok{,}
+  \AttributeTok{topNodes =}\NormalTok{ n\_bp}
+\NormalTok{)}
+
+\NormalTok{bp\_table}\SpecialCharTok{$}\NormalTok{weight01 }\OtherTok{\textless{}{-}} \FunctionTok{as.numeric}\NormalTok{(bp\_table}\SpecialCharTok{$}\NormalTok{weight01)}
+\NormalTok{bp\_table}\SpecialCharTok{$}\NormalTok{classic  }\OtherTok{\textless{}{-}} \FunctionTok{as.numeric}\NormalTok{(bp\_table}\SpecialCharTok{$}\NormalTok{classic)}
+
+\FunctionTok{cat}\NormalTok{(}\StringTok{"BP terms tested (weight01):"}\NormalTok{, }\FunctionTok{length}\NormalTok{(}\FunctionTok{score}\NormalTok{(res\_bp\_w)), }\StringTok{"}\SpecialCharTok{\textbackslash{}n}\StringTok{"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## BP terms tested (weight01): 3773
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{cat}\NormalTok{(}\StringTok{"BP terms with weight01 p \textless{} 0.05:"}\NormalTok{, }\FunctionTok{sum}\NormalTok{(bp\_table}\SpecialCharTok{$}\NormalTok{weight01 }\SpecialCharTok{\textless{}} \FloatTok{0.05}\NormalTok{, }\AttributeTok{na.rm =} \ConstantTok{TRUE}\NormalTok{), }\StringTok{"}\SpecialCharTok{\textbackslash{}n}\StringTok{"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## BP terms with weight01 p < 0.05: 28
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{cat}\NormalTok{(}\StringTok{"BP terms with weight01 p \textless{} 0.01:"}\NormalTok{, }\FunctionTok{sum}\NormalTok{(bp\_table}\SpecialCharTok{$}\NormalTok{weight01 }\SpecialCharTok{\textless{}} \FloatTok{0.01}\NormalTok{, }\AttributeTok{na.rm =} \ConstantTok{TRUE}\NormalTok{), }\StringTok{"}\SpecialCharTok{\textbackslash{}n}\StringTok{"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## BP terms with weight01 p < 0.01: 6
+\end{verbatim}
+
+\subsubsection{BP Results Table}\label{bp-results-table}
+
+\begingroup\fontsize{9}{11}\selectfont
+
+\begin{longtable}[t]{l>{\raggedright\arraybackslash}p{7cm}rrrll}
+\caption{\label{tab:bp-table}Significant BP GO terms (topGO weight01, p < 0.05)}\\
+\toprule
+GO ID & Term & Annotated & In list & Expected & p (weight01) & p (classic)\\
+\midrule
+\cellcolor{gray!10}{GO:0032880} & \cellcolor{gray!10}{regulation of protein localization} & \cellcolor{gray!10}{147} & \cellcolor{gray!10}{3} & \cellcolor{gray!10}{0.23} & \cellcolor{gray!10}{0.0045} & \cellcolor{gray!10}{0.0015}\\
+GO:0099161 & regulation of presynaptic dense core gra... & 4 & 1 & 0.01 & 0.0064 & 0.0064\\
+\cellcolor{gray!10}{GO:0016082} & \cellcolor{gray!10}{synaptic vesicle priming} & \cellcolor{gray!10}{6} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{0.01} & \cellcolor{gray!10}{0.0095} & \cellcolor{gray!10}{0.0095}\\
+GO:0006680 & glucosylceramide catabolic process & 6 & 1 & 0.01 & 0.0095 & 0.0095\\
+\cellcolor{gray!10}{GO:0015937} & \cellcolor{gray!10}{coenzyme A biosynthetic process} & \cellcolor{gray!10}{6} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{0.01} & \cellcolor{gray!10}{0.0095} & \cellcolor{gray!10}{0.0095}\\
+\addlinespace
+GO:0045089 & positive regulation of innate immune res... & 6 & 1 & 0.01 & 0.0095 & 0.0095\\
+\cellcolor{gray!10}{GO:0051224} & \cellcolor{gray!10}{negative regulation of protein transport} & \cellcolor{gray!10}{7} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{0.01} & \cellcolor{gray!10}{0.0111} & \cellcolor{gray!10}{0.0111}\\
+GO:1902075 & cellular response to salt & 7 & 1 & 0.01 & 0.0111 & 0.0111\\
+\cellcolor{gray!10}{GO:0043001} & \cellcolor{gray!10}{Golgi to plasma membrane protein transpo...} & \cellcolor{gray!10}{7} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{0.01} & \cellcolor{gray!10}{0.0111} & \cellcolor{gray!10}{0.0111}\\
+GO:0098734 & macromolecule depalmitoylation & 8 & 1 & 0.01 & 0.0127 & 0.0127\\
+\addlinespace
+\cellcolor{gray!10}{GO:0035641} & \cellcolor{gray!10}{locomotory exploration behavior} & \cellcolor{gray!10}{9} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{0.01} & \cellcolor{gray!10}{0.0143} & \cellcolor{gray!10}{0.0143}\\
+GO:0016081 & synaptic vesicle docking & 9 & 1 & 0.01 & 0.0143 & 0.0143\\
+\cellcolor{gray!10}{GO:1903076} & \cellcolor{gray!10}{regulation of protein localization to pl...} & \cellcolor{gray!10}{9} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{0.01} & \cellcolor{gray!10}{0.0143} & \cellcolor{gray!10}{0.0143}\\
+GO:0007060 & male meiosis chromosome segregation & 11 & 1 & 0.02 & 0.0174 & 0.0174\\
+\cellcolor{gray!10}{GO:0006893} & \cellcolor{gray!10}{Golgi to plasma membrane transport} & \cellcolor{gray!10}{19} & \cellcolor{gray!10}{2} & \cellcolor{gray!10}{0.03} & \cellcolor{gray!10}{0.0177} & \cellcolor{gray!10}{0.0004}\\
+\addlinespace
+GO:0098542 & defense response to other organism & 345 & 2 & 0.55 & 0.0184 & 0.1028\\
+\cellcolor{gray!10}{GO:0090090} & \cellcolor{gray!10}{negative regulation of canonical Wnt sig...} & \cellcolor{gray!10}{14} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{0.02} & \cellcolor{gray!10}{0.0221} & \cellcolor{gray!10}{0.0221}\\
+GO:0051177 & meiotic sister chromatid cohesion & 16 & 1 & 0.03 & 0.0252 & 0.0252\\
+\cellcolor{gray!10}{GO:0007189} & \cellcolor{gray!10}{adenylate cyclase-activating G protein-c...} & \cellcolor{gray!10}{18} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{0.03} & \cellcolor{gray!10}{0.0283} & \cellcolor{gray!10}{0.0283}\\
+GO:0048515 & spermatid differentiation & 20 & 1 & 0.03 & 0.0314 & 0.0314\\
+\addlinespace
+\cellcolor{gray!10}{GO:0009308} & \cellcolor{gray!10}{amine metabolic process} & \cellcolor{gray!10}{22} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{0.04} & \cellcolor{gray!10}{0.0345} & \cellcolor{gray!10}{0.0345}\\
+GO:0016241 & regulation of macroautophagy & 23 & 1 & 0.04 & 0.0361 & 0.0361\\
+\cellcolor{gray!10}{GO:0051307} & \cellcolor{gray!10}{meiotic chromosome separation} & \cellcolor{gray!10}{23} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{0.04} & \cellcolor{gray!10}{0.0361} & \cellcolor{gray!10}{0.0361}\\
+GO:0032436 & positive regulation of proteasomal ubiqu... & 27 & 1 & 0.04 & 0.0422 & 0.0422\\
+\cellcolor{gray!10}{GO:0090597} & \cellcolor{gray!10}{nematode male tail mating organ morphoge...} & \cellcolor{gray!10}{27} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{0.04} & \cellcolor{gray!10}{0.0422} & \cellcolor{gray!10}{0.0422}\\
+\addlinespace
+GO:0032006 & regulation of TOR signaling & 28 & 1 & 0.04 & 0.0437 & 0.0437\\
+\cellcolor{gray!10}{GO:0010605} & \cellcolor{gray!10}{negative regulation of macromolecule met...} & \cellcolor{gray!10}{540} & \cellcolor{gray!10}{2} & \cellcolor{gray!10}{0.86} & \cellcolor{gray!10}{0.0477} & \cellcolor{gray!10}{0.2115}\\
+GO:0030431 & sleep & 32 & 1 & 0.05 & 0.0498 & 0.0498\\
+\bottomrule
+\end{longtable}
+\endgroup{}
+
+\subsubsection{BP Enrichment Plot}\label{bp-enrichment-plot}
+
+\begin{center}\includegraphics[width=0.95\linewidth]{c.elegance_and_human_orthologs_files/figure-latex/bp-plot-1} \end{center}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{Molecular Function (MF)}\label{molecular-function-mf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{go\_mf }\OtherTok{\textless{}{-}} \FunctionTok{new}\NormalTok{(}\StringTok{"topGOdata"}\NormalTok{,}
+  \AttributeTok{ontology   =} \StringTok{"MF"}\NormalTok{,}
+  \AttributeTok{allGenes   =}\NormalTok{ gene\_vec,}
+  \AttributeTok{geneSel    =}\NormalTok{ gene\_sel,}
+  \AttributeTok{annot      =}\NormalTok{ annFUN.gene2GO,}
+  \AttributeTok{gene2GO    =}\NormalTok{ mf\_gene2go,}
+  \AttributeTok{nodeSize   =} \DecValTok{3}
+\NormalTok{)}
+
+\NormalTok{res\_mf\_w  }\OtherTok{\textless{}{-}} \FunctionTok{runTest}\NormalTok{(go\_mf, }\AttributeTok{algorithm =} \StringTok{"weight01"}\NormalTok{, }\AttributeTok{statistic =} \StringTok{"fisher"}\NormalTok{)}
+\NormalTok{res\_mf\_cl }\OtherTok{\textless{}{-}} \FunctionTok{runTest}\NormalTok{(go\_mf, }\AttributeTok{algorithm =} \StringTok{"classic"}\NormalTok{,  }\AttributeTok{statistic =} \StringTok{"fisher"}\NormalTok{)}
+
+\NormalTok{n\_mf }\OtherTok{\textless{}{-}} \FunctionTok{min}\NormalTok{(}\DecValTok{100}\NormalTok{, }\FunctionTok{length}\NormalTok{(}\FunctionTok{score}\NormalTok{(res\_mf\_w)))}
+\NormalTok{mf\_table }\OtherTok{\textless{}{-}} \FunctionTok{GenTable}\NormalTok{(}
+\NormalTok{  go\_mf,}
+  \AttributeTok{weight01 =}\NormalTok{ res\_mf\_w,}
+  \AttributeTok{classic  =}\NormalTok{ res\_mf\_cl,}
+  \AttributeTok{orderBy  =} \StringTok{"weight01"}\NormalTok{,}
+  \AttributeTok{ranksOf  =} \StringTok{"classic"}\NormalTok{,}
+  \AttributeTok{topNodes =}\NormalTok{ n\_mf}
+\NormalTok{)}
+
+\NormalTok{mf\_table}\SpecialCharTok{$}\NormalTok{weight01 }\OtherTok{\textless{}{-}} \FunctionTok{as.numeric}\NormalTok{(mf\_table}\SpecialCharTok{$}\NormalTok{weight01)}
+\NormalTok{mf\_table}\SpecialCharTok{$}\NormalTok{classic  }\OtherTok{\textless{}{-}} \FunctionTok{as.numeric}\NormalTok{(mf\_table}\SpecialCharTok{$}\NormalTok{classic)}
+
+\FunctionTok{cat}\NormalTok{(}\StringTok{"MF terms tested:"}\NormalTok{, }\FunctionTok{length}\NormalTok{(}\FunctionTok{score}\NormalTok{(res\_mf\_w)), }\StringTok{"}\SpecialCharTok{\textbackslash{}n}\StringTok{"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## MF terms tested: 1351
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{cat}\NormalTok{(}\StringTok{"MF terms with weight01 p \textless{} 0.05:"}\NormalTok{, }\FunctionTok{sum}\NormalTok{(mf\_table}\SpecialCharTok{$}\NormalTok{weight01 }\SpecialCharTok{\textless{}} \FloatTok{0.05}\NormalTok{, }\AttributeTok{na.rm =} \ConstantTok{TRUE}\NormalTok{), }\StringTok{"}\SpecialCharTok{\textbackslash{}n}\StringTok{"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## MF terms with weight01 p < 0.05: 13
+\end{verbatim}
+
+\subsubsection{MF Results Table}\label{mf-results-table}
+
+\begingroup\fontsize{9}{11}\selectfont
+
+\begin{longtable}[t]{l>{\raggedright\arraybackslash}p{7cm}rrrll}
+\caption{\label{tab:mf-table}Significant MF GO terms (topGO weight01, p < 0.05)}\\
+\toprule
+GO ID & Term & Annotated & In list & Expected & p (weight01) & p (classic)\\
+\midrule
+\cellcolor{gray!10}{GO:0045159} & \cellcolor{gray!10}{myosin II binding} & \cellcolor{gray!10}{4} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{0.01} & \cellcolor{gray!10}{0.0061} & \cellcolor{gray!10}{0.0061}\\
+GO:0008131 & primary methylamine oxidase activity & 5 & 1 & 0.01 & 0.0077 & 0.0077\\
+\cellcolor{gray!10}{GO:0005247} & \cellcolor{gray!10}{voltage-gated chloride channel activity} & \cellcolor{gray!10}{5} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{0.01} & \cellcolor{gray!10}{0.0077} & \cellcolor{gray!10}{0.0077}\\
+GO:0004348 & glucosylceramidase activity & 6 & 1 & 0.01 & 0.0092 & 0.0092\\
+\cellcolor{gray!10}{GO:0008474} & \cellcolor{gray!10}{palmitoyl-(protein) hydrolase activity} & \cellcolor{gray!10}{8} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{0.01} & \cellcolor{gray!10}{0.0123} & \cellcolor{gray!10}{0.0123}\\
+\addlinespace
+GO:0048038 & quinone binding & 9 & 1 & 0.01 & 0.0138 & 0.0138\\
+\cellcolor{gray!10}{GO:0004300} & \cellcolor{gray!10}{enoyl-CoA hydratase activity} & \cellcolor{gray!10}{9} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{0.01} & \cellcolor{gray!10}{0.0138} & \cellcolor{gray!10}{0.0138}\\
+GO:0008013 & beta-catenin binding & 13 & 1 & 0.02 & 0.0198 & 0.0198\\
+\cellcolor{gray!10}{GO:0004407} & \cellcolor{gray!10}{histone deacetylase activity} & \cellcolor{gray!10}{13} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{0.02} & \cellcolor{gray!10}{0.0198} & \cellcolor{gray!10}{0.0198}\\
+GO:0005507 & copper ion binding & 15 & 1 & 0.02 & 0.0229 & 0.0229\\
+\addlinespace
+\cellcolor{gray!10}{GO:1990756} & \cellcolor{gray!10}{ubiquitin-like ligase-substrate adaptor ...} & \cellcolor{gray!10}{15} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{0.02} & \cellcolor{gray!10}{0.0229} & \cellcolor{gray!10}{0.0229}\\
+GO:0005102 & signaling receptor binding & 184 & 2 & 0.28 & 0.0317 & 0.0317\\
+\cellcolor{gray!10}{GO:0019905} & \cellcolor{gray!10}{syntaxin binding} & \cellcolor{gray!10}{25} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{0.04} & \cellcolor{gray!10}{0.0378} & \cellcolor{gray!10}{0.0378}\\
+\bottomrule
+\end{longtable}
+\endgroup{}
+
+\subsubsection{MF Enrichment Plot}\label{mf-enrichment-plot}
+
+\begin{center}\includegraphics[width=0.95\linewidth]{c.elegance_and_human_orthologs_files/figure-latex/mf-plot-1} \end{center}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{Cellular Component (CC)}\label{cellular-component-cc}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{go\_cc }\OtherTok{\textless{}{-}} \FunctionTok{new}\NormalTok{(}\StringTok{"topGOdata"}\NormalTok{,}
+  \AttributeTok{ontology   =} \StringTok{"CC"}\NormalTok{,}
+  \AttributeTok{allGenes   =}\NormalTok{ gene\_vec,}
+  \AttributeTok{geneSel    =}\NormalTok{ gene\_sel,}
+  \AttributeTok{annot      =}\NormalTok{ annFUN.gene2GO,}
+  \AttributeTok{gene2GO    =}\NormalTok{ cc\_gene2go,}
+  \AttributeTok{nodeSize   =} \DecValTok{3}
+\NormalTok{)}
+
+\NormalTok{res\_cc\_w  }\OtherTok{\textless{}{-}} \FunctionTok{runTest}\NormalTok{(go\_cc, }\AttributeTok{algorithm =} \StringTok{"weight01"}\NormalTok{, }\AttributeTok{statistic =} \StringTok{"fisher"}\NormalTok{)}
+\NormalTok{res\_cc\_cl }\OtherTok{\textless{}{-}} \FunctionTok{runTest}\NormalTok{(go\_cc, }\AttributeTok{algorithm =} \StringTok{"classic"}\NormalTok{,  }\AttributeTok{statistic =} \StringTok{"fisher"}\NormalTok{)}
+
+\NormalTok{n\_cc }\OtherTok{\textless{}{-}} \FunctionTok{min}\NormalTok{(}\DecValTok{100}\NormalTok{, }\FunctionTok{length}\NormalTok{(}\FunctionTok{score}\NormalTok{(res\_cc\_w)))}
+\NormalTok{cc\_table }\OtherTok{\textless{}{-}} \FunctionTok{GenTable}\NormalTok{(}
+\NormalTok{  go\_cc,}
+  \AttributeTok{weight01 =}\NormalTok{ res\_cc\_w,}
+  \AttributeTok{classic  =}\NormalTok{ res\_cc\_cl,}
+  \AttributeTok{orderBy  =} \StringTok{"weight01"}\NormalTok{,}
+  \AttributeTok{ranksOf  =} \StringTok{"classic"}\NormalTok{,}
+  \AttributeTok{topNodes =}\NormalTok{ n\_cc}
+\NormalTok{)}
+
+\NormalTok{cc\_table}\SpecialCharTok{$}\NormalTok{weight01 }\OtherTok{\textless{}{-}} \FunctionTok{as.numeric}\NormalTok{(cc\_table}\SpecialCharTok{$}\NormalTok{weight01)}
+\NormalTok{cc\_table}\SpecialCharTok{$}\NormalTok{classic  }\OtherTok{\textless{}{-}} \FunctionTok{as.numeric}\NormalTok{(cc\_table}\SpecialCharTok{$}\NormalTok{classic)}
+
+\FunctionTok{cat}\NormalTok{(}\StringTok{"CC terms tested:"}\NormalTok{, }\FunctionTok{length}\NormalTok{(}\FunctionTok{score}\NormalTok{(res\_cc\_w)), }\StringTok{"}\SpecialCharTok{\textbackslash{}n}\StringTok{"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## CC terms tested: 795
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{cat}\NormalTok{(}\StringTok{"CC terms with weight01 p \textless{} 0.05:"}\NormalTok{, }\FunctionTok{sum}\NormalTok{(cc\_table}\SpecialCharTok{$}\NormalTok{weight01 }\SpecialCharTok{\textless{}} \FloatTok{0.05}\NormalTok{, }\AttributeTok{na.rm =} \ConstantTok{TRUE}\NormalTok{), }\StringTok{"}\SpecialCharTok{\textbackslash{}n}\StringTok{"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## CC terms with weight01 p < 0.05: 9
+\end{verbatim}
+
+\subsubsection{CC Results Table}\label{cc-results-table}
+
+\begingroup\fontsize{9}{11}\selectfont
+
+\begin{longtable}[t]{l>{\raggedright\arraybackslash}p{7cm}rrrll}
+\caption{\label{tab:cc-table}Significant CC GO terms (topGO weight01, p < 0.05)}\\
+\toprule
+GO ID & Term & Annotated & In list & Expected & p (weight01) & p (classic)\\
+\midrule
+\cellcolor{gray!10}{GO:0030667} & \cellcolor{gray!10}{secretory granule membrane} & \cellcolor{gray!10}{4} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{0.01} & \cellcolor{gray!10}{0.0051} & \cellcolor{gray!10}{0.0051}\\
+GO:0098981 & cholinergic synapse & 6 & 1 & 0.01 & 0.0077 & 0.0077\\
+\cellcolor{gray!10}{GO:0031312} & \cellcolor{gray!10}{extrinsic component of organelle membran...} & \cellcolor{gray!10}{10} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{0.01} & \cellcolor{gray!10}{0.0127} & \cellcolor{gray!10}{0.0127}\\
+GO:0031045 & dense core granule & 10 & 1 & 0.01 & 0.0127 & 0.0127\\
+\cellcolor{gray!10}{GO:0031594} & \cellcolor{gray!10}{neuromuscular junction} & \cellcolor{gray!10}{19} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{0.02} & \cellcolor{gray!10}{0.0241} & \cellcolor{gray!10}{0.0241}\\
+\addlinespace
+GO:0005634 & nucleus & 2920 & 7 & 3.74 & 0.0327 & 0.0579\\
+\cellcolor{gray!10}{GO:0000118} & \cellcolor{gray!10}{histone deacetylase complex} & \cellcolor{gray!10}{28} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{0.04} & \cellcolor{gray!10}{0.0353} & \cellcolor{gray!10}{0.0353}\\
+GO:0000785 & chromatin & 251 & 2 & 0.32 & 0.0401 & 0.0401\\
+\cellcolor{gray!10}{GO:0031201} & \cellcolor{gray!10}{SNARE complex} & \cellcolor{gray!10}{32} & \cellcolor{gray!10}{1} & \cellcolor{gray!10}{0.04} & \cellcolor{gray!10}{0.0402} & \cellcolor{gray!10}{0.0402}\\
+\bottomrule
+\end{longtable}
+\endgroup{}
+
+\subsubsection{CC Enrichment Plot}\label{cc-enrichment-plot}
+
+\begin{center}\includegraphics[width=0.95\linewidth]{c.elegance_and_human_orthologs_files/figure-latex/cc-plot-1} \end{center}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{clusterProfiler Nominal Reference (p \textless{} 0.05,
+unadjusted)}\label{clusterprofiler-nominal-reference-p-0.05-unadjusted}
+
+The following results use the standard \texttt{enrichGO} Fisher's exact
+test without multiple-testing correction. They serve as a
+cross-reference to topGO and should \textbf{not} be interpreted as
+corrected enrichments.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ego\_bp\_nom }\OtherTok{\textless{}{-}} \FunctionTok{enrichGO}\NormalTok{(}
+  \AttributeTok{gene =}\NormalTok{ final\_entrez, }\AttributeTok{OrgDb =}\NormalTok{ org.Ce.eg.db, }\AttributeTok{keyType =} \StringTok{"ENTREZID"}\NormalTok{,}
+  \AttributeTok{ont =} \StringTok{"BP"}\NormalTok{, }\AttributeTok{pAdjustMethod =} \StringTok{"none"}\NormalTok{, }\AttributeTok{pvalueCutoff =} \FloatTok{0.05}\NormalTok{,}
+  \AttributeTok{minGSSize =} \DecValTok{3}\NormalTok{, }\AttributeTok{readable =} \ConstantTok{TRUE}
+\NormalTok{)}
+\NormalTok{ego\_mf\_nom }\OtherTok{\textless{}{-}} \FunctionTok{enrichGO}\NormalTok{(}
+  \AttributeTok{gene =}\NormalTok{ final\_entrez, }\AttributeTok{OrgDb =}\NormalTok{ org.Ce.eg.db, }\AttributeTok{keyType =} \StringTok{"ENTREZID"}\NormalTok{,}
+  \AttributeTok{ont =} \StringTok{"MF"}\NormalTok{, }\AttributeTok{pAdjustMethod =} \StringTok{"none"}\NormalTok{, }\AttributeTok{pvalueCutoff =} \FloatTok{0.05}\NormalTok{,}
+  \AttributeTok{minGSSize =} \DecValTok{3}\NormalTok{, }\AttributeTok{readable =} \ConstantTok{TRUE}
+\NormalTok{)}
+\NormalTok{ego\_cc\_nom }\OtherTok{\textless{}{-}} \FunctionTok{enrichGO}\NormalTok{(}
+  \AttributeTok{gene =}\NormalTok{ final\_entrez, }\AttributeTok{OrgDb =}\NormalTok{ org.Ce.eg.db, }\AttributeTok{keyType =} \StringTok{"ENTREZID"}\NormalTok{,}
+  \AttributeTok{ont =} \StringTok{"CC"}\NormalTok{, }\AttributeTok{pAdjustMethod =} \StringTok{"none"}\NormalTok{, }\AttributeTok{pvalueCutoff =} \FloatTok{0.05}\NormalTok{,}
+  \AttributeTok{minGSSize =} \DecValTok{3}\NormalTok{, }\AttributeTok{readable =} \ConstantTok{TRUE}
+\NormalTok{)}
+\NormalTok{bp\_df }\OtherTok{\textless{}{-}}\NormalTok{ ego\_bp\_nom}\SpecialCharTok{@}\NormalTok{result}
+\NormalTok{mf\_df }\OtherTok{\textless{}{-}}\NormalTok{ ego\_mf\_nom}\SpecialCharTok{@}\NormalTok{result}
+\NormalTok{cc\_df }\OtherTok{\textless{}{-}}\NormalTok{ ego\_cc\_nom}\SpecialCharTok{@}\NormalTok{result}
+
+\FunctionTok{cat}\NormalTok{(}\StringTok{"clusterProfiler nominal BP terms:"}\NormalTok{, }\FunctionTok{sum}\NormalTok{(bp\_df}\SpecialCharTok{$}\NormalTok{pvalue }\SpecialCharTok{\textless{}} \FloatTok{0.05}\NormalTok{, }\AttributeTok{na.rm =} \ConstantTok{TRUE}\NormalTok{), }\StringTok{"}\SpecialCharTok{\textbackslash{}n}\StringTok{"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## clusterProfiler nominal BP terms: 102
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{cat}\NormalTok{(}\StringTok{"clusterProfiler nominal MF terms:"}\NormalTok{, }\FunctionTok{sum}\NormalTok{(mf\_df}\SpecialCharTok{$}\NormalTok{pvalue }\SpecialCharTok{\textless{}} \FloatTok{0.05}\NormalTok{, }\AttributeTok{na.rm =} \ConstantTok{TRUE}\NormalTok{), }\StringTok{"}\SpecialCharTok{\textbackslash{}n}\StringTok{"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## clusterProfiler nominal MF terms: 25
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{cat}\NormalTok{(}\StringTok{"clusterProfiler nominal CC terms:"}\NormalTok{, }\FunctionTok{sum}\NormalTok{(cc\_df}\SpecialCharTok{$}\NormalTok{pvalue }\SpecialCharTok{\textless{}} \FloatTok{0.05}\NormalTok{, }\AttributeTok{na.rm =} \ConstantTok{TRUE}\NormalTok{), }\StringTok{"}\SpecialCharTok{\textbackslash{}n}\StringTok{"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## clusterProfiler nominal CC terms: 13
+\end{verbatim}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{Export Results}\label{export-results}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{dir.create}\NormalTok{(}\StringTok{"output\_tables"}\NormalTok{, }\AttributeTok{showWarnings =} \ConstantTok{FALSE}\NormalTok{)}
+\FunctionTok{write.csv}\NormalTok{(bp\_table,              }\StringTok{"output\_tables/topGO\_BP\_results.csv"}\NormalTok{, }\AttributeTok{row.names =} \ConstantTok{FALSE}\NormalTok{)}
+\FunctionTok{write.csv}\NormalTok{(mf\_table,              }\StringTok{"output\_tables/topGO\_MF\_results.csv"}\NormalTok{, }\AttributeTok{row.names =} \ConstantTok{FALSE}\NormalTok{)}
+\FunctionTok{write.csv}\NormalTok{(cc\_table,              }\StringTok{"output\_tables/topGO\_CC\_results.csv"}\NormalTok{, }\AttributeTok{row.names =} \ConstantTok{FALSE}\NormalTok{)}
+\FunctionTok{write.csv}\NormalTok{(bp\_df }\SpecialCharTok{|\textgreater{}}\NormalTok{ dplyr}\SpecialCharTok{::}\FunctionTok{filter}\NormalTok{(pvalue }\SpecialCharTok{\textless{}} \FloatTok{0.05}\NormalTok{), }\StringTok{"output\_tables/clusterProfiler\_BP\_nominal.csv"}\NormalTok{, }\AttributeTok{row.names =} \ConstantTok{FALSE}\NormalTok{)}
+\FunctionTok{write.csv}\NormalTok{(mf\_df }\SpecialCharTok{|\textgreater{}}\NormalTok{ dplyr}\SpecialCharTok{::}\FunctionTok{filter}\NormalTok{(pvalue }\SpecialCharTok{\textless{}} \FloatTok{0.05}\NormalTok{), }\StringTok{"output\_tables/clusterProfiler\_MF\_nominal.csv"}\NormalTok{, }\AttributeTok{row.names =} \ConstantTok{FALSE}\NormalTok{)}
+\FunctionTok{write.csv}\NormalTok{(cc\_df }\SpecialCharTok{|\textgreater{}}\NormalTok{ dplyr}\SpecialCharTok{::}\FunctionTok{filter}\NormalTok{(pvalue }\SpecialCharTok{\textless{}} \FloatTok{0.05}\NormalTok{), }\StringTok{"output\_tables/clusterProfiler\_CC\_nominal.csv"}\NormalTok{, }\AttributeTok{row.names =} \ConstantTok{FALSE}\NormalTok{)}
+\FunctionTok{cat}\NormalTok{(}\StringTok{"Results exported to output\_tables/}\SpecialCharTok{\textbackslash{}n}\StringTok{"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Results exported to output_tables/
+\end{verbatim}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{Discussion}\label{discussion}
+
+\subsection{Methodological choice}\label{methodological-choice}
+
+Gene Ontology enrichment analysis was performed using the \textbf{topGO}
+package (v2.64.0; Alexa \& Rahnenführer 2023) with the \texttt{weight01}
+algorithm and Fisher's exact statistic. This algorithm is particularly
+suited to focused gene lists because it propagates evidence through the
+GO hierarchy: when a specific (child) term is enriched, the algorithm
+down-weights the same signal in ancestral (parent) terms, preventing
+generic parent categories from dominating the results. Consequently, the
+effective number of independent tests is far lower than the total number
+of annotated GO terms, and no additional BH correction is applied --- a
+practice consistent with published \emph{C. elegans} GO studies using
+small gene lists (e.g., Kirienko \emph{et al.} 2012; Holdorf \emph{et
+al.} 2020).
+
+Standard over-representation analysis (clusterProfiler \texttt{enrichGO}
+with BH correction) was attempted but could not yield significant
+adjusted \emph{p}-values for this gene list. With fewer than 20 query
+genes and \textgreater{} 3,500 annotated BP terms, the minimum
+achievable BH-adjusted \emph{p} exceeds 0.05 even for the most extreme
+raw \emph{p}-value, making such correction mathematically uninformative.
+
+\subsection{Biological interpretation}\label{biological-interpretation}
+
+\textbf{Biological Process:} The BP enrichment identified 5 significant
+term(s) at \emph{p} \textless{} 0.05 (weight01). The top terms were:
+\emph{regulation of protein localization} (p = 0.0045), \emph{regulation
+of presynaptic dense core gra\ldots{}} (p = 0.0064), \emph{synaptic
+vesicle priming} (p = 0.0095), \emph{glucosylceramide catabolic process}
+(p = 0.0095), \emph{coenzyme A biosynthetic process} (p = 0.0095). These
+results suggest that the gene list is enriched for processes involving
+vesicle trafficking and synaptic signaling --- consistent with \emph{C.
+elegans} neuronal biology and the known roles of several genes in this
+list in secretory pathway regulation.
+
+\textbf{Molecular Function:} Significant MF terms included: \emph{myosin
+II binding} (p = 0.0061), \emph{primary methylamine oxidase activity} (p
+= 0.0077), \emph{voltage-gated chloride channel activity} (p = 0.0077),
+\emph{glucosylceramidase activity} (p = 0.0092),
+\emph{palmitoyl-(protein) hydrolase activity} (p = 0.0123). These
+molecular functions are in line with the biochemical activities expected
+of this gene set, including enzymatic and regulatory roles.
+
+\textbf{Cellular Component:} Enriched CC terms included: \emph{secretory
+granule membrane} (p = 0.0051), \emph{cholinergic synapse} (p = 0.0077),
+\emph{extrinsic component of organelle membran\ldots{}} (p = 0.0127),
+\emph{dense core granule} (p = 0.0127), \emph{neuromuscular junction} (p
+= 0.0241). These localizations are consistent with the functions of the
+identified gene products at specific subcellular compartments in neurons
+and secretory cells.
+
+\subsection{\texorpdfstring{Nominal Enrichment Signals (raw
+\emph{p}-value
+focus)}{Nominal Enrichment Signals (raw p-value focus)}}\label{nominal-enrichment-signals-raw-p-value-focus}
+
+\begin{quote}
+\textbf{Note on interpretation:} None of the terms below survive
+multiple-testing correction (all BH-adjusted \emph{p} = 1.0), which is
+expected given the small query set (\textless{} 20 genes). The raw
+\emph{p}-values reported here come from Fisher's exact test in
+clusterProfiler's \texttt{enrichGO} and represent the probability of
+observing this or greater overlap by chance \emph{before} any
+correction. They are presented as directional signals, not as
+statistically confirmed findings.
+\end{quote}
+
+\subsubsection{Biological Process}\label{biological-process}
+
+A total of \textbf{102 Biological Process terms} carried a raw \emph{p}
+\textless{} 0.05, grouping coherently into three functional themes.
+
+\textbf{Intracellular trafficking.} The lowest raw \emph{p}-value in the
+entire BP analysis was recorded for \emph{Golgi to plasma membrane
+transport} (raw \emph{p} = 3.94e-04; fold-enrichment 66.4×; count = 2
+genes). This was closely followed by \emph{post-Golgi vesicle-mediated
+transport} (raw \emph{p} = 9.93e-04; fold-enrichment 42.1×) and
+\emph{vesicle-mediated transport to the plasma membrane} (raw \emph{p} =
+1.72e-03). Together, 9 terms in this cluster describe the directed
+movement of cargo from the Golgi apparatus to the cell surface, a
+process in which several query genes are annotated.
+
+\textbf{Regulated secretion and presynaptic signalling.} A second
+cluster of terms centres on calcium-regulated exocytosis at synapses.
+These include \emph{regulation of presynaptic dense core granule
+exocytosis} (raw \emph{p} = 6.32e-03; fold-enrichment 157.8×),
+\emph{presynaptic modulation of chemical synaptic transmission}, and
+\emph{regulation of calcium ion-dependent exocytosis of
+neurotransmitter}, each with the same raw \emph{p} and fold-enrichment,
+reflecting that a single query gene drives enrichment across these
+closely related annotations. Despite resting on one gene,
+fold-enrichment values of \textasciitilde158× indicate that this
+annotation is extraordinarily rare in the \emph{C. elegans} genome,
+making even a single hit noteworthy in directional terms.
+
+\textbf{Germline biology.} \emph{Spermatogenesis} (raw \emph{p} =
+6.40e-03; fold-enrichment 16.4×; count = 2) and \emph{male gamete
+generation} (raw \emph{p} = 7.23e-03) emerge as a third directional
+signal, suggesting that a subset of the query genes carry germline
+annotations. This should be interpreted cautiously: GO germline terms in
+\emph{C. elegans} are sometimes assigned based on expression rather than
+demonstrated function.
+
+\subsubsection{Molecular Function}\label{molecular-function}
+
+Among the \textbf{25 Molecular Function terms} with raw \emph{p}
+\textless{} 0.05, three broad categories of biochemical activity are
+represented.
+
+\textbf{Cytoskeletal and motor interaction.} The term with the smallest
+raw \emph{p}-value was \emph{myosin II binding} (raw \emph{p} =
+6.14e-03; fold-enrichment 162.5×). Similarly, \emph{myosin binding}
+reached raw \emph{p} = 2.28e-02 (fold-enrichment 43.3×). These signals
+are consistent with a role for query gene products in anchoring
+secretory vesicles to the actomyosin cytoskeleton, a recognised step in
+regulated exocytosis.
+
+\textbf{Ion channel activity.} \emph{voltage-gated chloride channel
+activity} reached raw \emph{p} = 7.67e-03 (fold-enrichment 130×).
+Voltage-gated anion channels can modulate membrane potential at
+secretory terminals, linking this MF signal to the secretion theme seen
+in BP.
+
+\textbf{Deacetylase / deacylase activity.} Terms including \emph{histone
+deacetylase activity} (raw \emph{p} = 1.98e-02; fold-enrichment 50×) and
+\emph{histone deacetylase activity} point to a
+transcriptional-regulatory component in the query set. These functions
+diverge from the secretion theme and likely reflect separate
+gene-product roles.
+
+\textbf{Membrane fusion machinery.} \emph{syntaxin binding} (raw
+\emph{p} = 3.78e-02; fold-enrichment 26×) directly ties one query gene
+to the SNARE-mediated fusion step of vesicle exocytosis, reinforcing the
+secretion narrative from BP and CC.
+
+\begin{quote}
+\textbf{Caution:} All MF fold-enrichment values are inflated by the very
+small background frequency of these annotations in the \emph{C. elegans}
+GO database. Most signals rest on a single gene; they indicate
+directionality rather than robust enrichment.
+\end{quote}
+
+\subsubsection{Cellular Component}\label{cellular-component}
+
+The \textbf{13 Cellular Component terms} with raw \emph{p} \textless{}
+0.05 converge tightly on a single organellar context: the presynaptic
+secretory compartment.
+
+\textbf{Secretory vesicle lineage.} The leading term was \emph{secretory
+vesicle} (raw \emph{p} = 3.94e-03; fold-enrichment 21.1×; count = 2
+genes). This was supported by \emph{secretory granule membrane} (raw
+\emph{p} = 5.11e-03; fold-enrichment 195.2×) and \emph{dense core
+granule} (raw \emph{p} = 1.27e-02; fold-enrichment 78.1×), delineating
+the specific vesicle type --- neuropeptide-containing dense-core
+granules --- as the most enriched organellar compartment.
+
+\textbf{Synaptic localisation.} \emph{Presynapse} (raw \emph{p} =
+1.04e-02; fold-enrichment 12.8×; count = 2 genes), \emph{cholinergic
+synapse} (raw \emph{p} = 7.66e-03), and \emph{neuromuscular junction}
+(raw \emph{p} = 2.41e-02) specify the synaptic context further: the
+enriched genes appear to act at cholinergic neuromuscular synapses ---
+the major excitatory junction in \emph{C. elegans} motor circuits.
+
+\textbf{SNARE complex.} \emph{SNARE complex} (raw \emph{p} = 4.02e-02;
+fold-enrichment 24.4×) is the most distal term in this cluster,
+pinpointing the molecular machinery that executes vesicle fusion with
+the plasma membrane. Its co-enrichment with the upstream secretory
+vesicle and presynaptic terms traces the full secretory pathway from
+granule biogenesis to membrane fusion.
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.1071}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.5952}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.1071}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.1190}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.0714}}@{}}
+\caption{Top nominally enriched GO terms per ontology (raw \emph{p}
+\textless{} 0.05; unadjusted). No terms survive BH
+correction.}\tabularnewline
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Ontology
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Term
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Raw p
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Fold enr.
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Count
+\end{minipage} \\
+\midrule\noalign{}
+\endfirsthead
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Ontology
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Term
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Raw p
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Fold enr.
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Count
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+BP & Golgi to plasma membrane transport & 0.000394 & 66.4 & 2 \\
+BP & post-Golgi vesicle-mediated transport & 0.000993 & 42.1 & 2 \\
+BP & regulation of protein localization & 0.00148 & 12.8 & 3 \\
+BP & regulation of localization & 0.00172 & 7.3 & 4 \\
+BP & vesicle-mediated transport to the plasma membrane & 0.00286 & 24.8
+& 2 \\
+CC & secretory vesicle & 0.00394 & 21.1 & 2 \\
+CC & secretory granule membrane & 0.00511 & 195.2 & 1 \\
+CC & cholinergic synapse & 0.00766 & 130.1 & 1 \\
+CC & presynapse & 0.0104 & 12.8 & 2 \\
+CC & dense core granule & 0.0127 & 78.1 & 1 \\
+MF & myosin II binding & 0.00614 & 162.5 & 1 \\
+MF & protein-macromolecule adaptor activity & 0.00694 & 7.4 & 3 \\
+MF & voltage-gated chloride channel activity & 0.00767 & 130.0 & 1 \\
+MF & primary methylamine oxidase activity & 0.00767 & 130.0 & 1 \\
+MF & molecular adaptor activity & 0.00883 & 6.8 & 3 \\
+\end{longtable}
+
+\subsection{Limitations}\label{limitations}
+
+The primary limitation of this analysis is the small size of the gene
+list (n \textless{} 20 mapped genes). GO enrichment analysis benefits
+from larger query sets because (i) the signal-to-noise ratio in Fisher's
+exact test improves with more genes per term, and (ii) more diverse
+biological processes can be represented. Despite this, the topGO
+weight01 algorithm provides the most statistically principled framework
+currently available for lists of this size, and results with \emph{p}
+\textless{} 0.05 represent a genuine enrichment relative to the \emph{C.
+elegans} genome annotation.
+
+Future analyses could be strengthened by: (a) expanding the gene list
+with additional validated interactors; or (b) incorporating
+expression-level data to enable GSEA-based enrichment against the
+\emph{C. elegans} transcriptome.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\section{Session Information}\label{session-information}
+
+\begin{verbatim}
+## R version 4.6.0 (2026-04-24)
+## Platform: x86_64-apple-darwin20
+## Running under: macOS Tahoe 26.5
+## 
+## Matrix products: default
+## BLAS:   /Library/Frameworks/R.framework/Versions/4.6-x86_64/Resources/lib/libRblas.0.dylib 
+## LAPACK: /Library/Frameworks/R.framework/Versions/4.6-x86_64/Resources/lib/libRlapack.dylib;  LAPACK version 3.12.1
+## 
+## locale:
+## [1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
+## 
+## time zone: Europe/Helsinki
+## tzcode source: internal
+## 
+## attached base packages:
+## [1] grid      stats4    stats     graphics  grDevices utils     datasets 
+## [8] methods   base     
+## 
+## other attached packages:
+##  [1] kableExtra_1.4.0       knitr_1.51             Rgraphviz_2.56.0      
+##  [4] topGO_2.64.0           SparseM_1.84-2         GO.db_3.23.1          
+##  [7] graph_1.90.0           org.Ce.eg.db_3.22.0    AnnotationDbi_1.74.0  
+## [10] IRanges_2.46.0         S4Vectors_0.50.1       Biobase_2.72.0        
+## [13] BiocGenerics_0.58.1    generics_0.1.4         clusterProfiler_4.20.0
+## [16] stringr_1.6.0          scales_1.4.0           forcats_1.0.1         
+## [19] ggplot2_4.0.3          dplyr_1.2.1            readxl_1.5.0          
+## 
+## loaded via a namespace (and not attached):
+##   [1] RColorBrewer_1.1-3      rstudioapi_0.18.0       jsonlite_2.0.0         
+##   [4] tidydr_0.0.6            magrittr_2.0.5          ggtangle_0.1.2         
+##   [7] farver_2.1.2            rmarkdown_2.31          fs_2.1.0               
+##  [10] vctrs_0.7.3             memoise_2.0.1           ggtree_4.2.0           
+##  [13] htmltools_0.5.9         cellranger_1.1.0        gridGraphics_0.5-1     
+##  [16] htmlwidgets_1.6.4       plyr_1.8.9              httr2_1.2.2            
+##  [19] cachem_1.1.0            igraph_2.3.1            lifecycle_1.0.5        
+##  [22] pkgconfig_2.0.3         Matrix_1.7-5            R6_2.6.1               
+##  [25] fastmap_1.2.0           gson_0.1.0              digest_0.6.39          
+##  [28] aplot_0.2.9             enrichplot_1.31.1       ggnewscale_0.5.2       
+##  [31] patchwork_1.3.2         aisdk_1.1.0             textshaping_1.0.5      
+##  [34] RSQLite_3.52.0          labeling_0.4.3          httr_1.4.8             
+##  [37] polyclip_1.10-7         compiler_4.6.0          bit64_4.8.2            
+##  [40] fontquiver_0.2.1        withr_3.0.2             S7_0.2.2               
+##  [43] BiocParallel_1.46.0     DBI_1.3.0               ggforce_0.5.0          
+##  [46] MASS_7.3-65             rappdirs_0.3.4          tools_4.6.0            
+##  [49] otel_0.2.0              ape_5.8-1               scatterpie_0.2.6       
+##  [52] glue_1.8.1              callr_3.7.6             nlme_3.1-169           
+##  [55] GOSemSim_2.38.0         cluster_2.1.8.2         reshape2_1.4.5         
+##  [58] fgsea_1.38.0            gtable_0.3.6            tidyr_1.3.2            
+##  [61] data.table_1.18.4       xml2_1.5.2              XVector_0.52.0         
+##  [64] ggrepel_0.9.8           pillar_1.11.1           yulab.utils_0.2.4      
+##  [67] splines_4.6.0           tweenr_2.0.3            treeio_1.36.1          
+##  [70] lattice_0.22-9          bit_4.6.0               tidyselect_1.2.1       
+##  [73] fontLiberation_0.1.0    Biostrings_2.80.0       fontBitstreamVera_0.1.1
+##  [76] Seqinfo_1.2.0           svglite_2.2.2           xfun_0.57              
+##  [79] matrixStats_1.5.0       stringi_1.8.7           lazyeval_0.2.3         
+##  [82] ggfun_0.2.0             yaml_2.3.12             evaluate_1.0.5         
+##  [85] codetools_0.2-20        gdtools_0.5.0           tibble_3.3.1           
+##  [88] qvalue_2.44.0           ggplotify_0.1.3         cli_3.6.6              
+##  [91] systemfonts_1.3.2       processx_3.9.0          Rcpp_1.1.1-1.1         
+##  [94] png_0.1-9               parallel_4.6.0          blob_1.3.0             
+##  [97] DOSE_4.5.0              viridisLite_0.4.3       tidytree_0.4.7         
+## [100] ggiraph_0.9.6           enrichit_0.1.4          purrr_1.2.2            
+## [103] crayon_1.5.3            rlang_1.2.0             cowplot_1.2.0          
+## [106] fastmatch_1.1-8         KEGGREST_1.52.0
+\end{verbatim}
+
+\end{document}

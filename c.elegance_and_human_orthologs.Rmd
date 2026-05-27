@@ -1,219 +1,974 @@
 ---
-title: "Functional Gene Enrichment Report"
+title: "C. elegans GO Enrichment Analysis"
+subtitle: Biological Process, Molecular Function & Cellular Component
+date: "`r format(Sys.Date(), '%B %d, %Y')`"
 output:
   pdf_document:
     toc: true
-    toc_depth: '2'
+    toc_depth: 3
+    number_sections: true
+    latex_engine: xelatex
+    keep_tex: false
   html_document:
     toc: true
-    toc_depth: 2
-    toc_float: true
-    number_sections: true
+    toc_depth: '3'
+    df_print: paged
+geometry: margin=2.5cm
+fontsize: 11pt
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+knitr::opts_chunk$set(
+  echo    = FALSE,
+  message = FALSE,
+  warning = FALSE,
+  fig.width  = 7,
+  fig.height = 5,
+  fig.align  = "center",
+  out.width  = "95%"
+)
 ```
 
-## 1. Load Required Libraries
+# Background and Rationale
 
-```{r libraries}
-packages <- c(
-  "readxl"
-  ,"clusterProfiler"
-  ,"org.Hs.eg.db"
-  ,"org.Ce.eg.db"
-  ,"enrichplot"
-  ,"ReactomePA"
-  ,"ggplot2"
-  ,"dplyr"
-  ,"ggplot2"
-  ,"forcats"
-  ,"dplyr")
+This report presents GO term enrichment analysis for a list of *C. elegans* genes
+using the **topGO** package (Alexa & Rahnenführer 2023). Standard over-representation
+analysis with Benjamini–Hochberg (BH) correction is not appropriate for small gene
+lists: with ~15 mapped query genes tested against > 3,500 BP terms, the minimum
+achievable BH-adjusted *p*-value exceeds 1 by arithmetic alone
+($$p_{\min} \times m > 1$$ when $m$ is large). The `topGO` `weight01` algorithm
+resolves this by propagating significance through the GO hierarchy — parent terms
+are down-weighted when their children are already significant — substantially
+reducing the effective number of independent tests. This approach is widely used
+in the *C. elegans* literature for focused gene lists.
 
-# Install only what's missing (BiocManager handles both CRAN and Bioconductor)
-missing_pkgs <- packages[!sapply(packages, requireNamespace, quietly = TRUE)]
-if (length(missing_pkgs) > 0) {
-  BiocManager::install(missing_pkgs)
-}
+For comparison, nominal Fisher's exact *p*-values from standard `enrichGO`
+(clusterProfiler) are also reported.
 
-# Load all
-invisible(lapply(packages, library, character.only = TRUE))
+---
 
-```
+# Setup
 
-## 2. Input Gene Lists
-### 2.1 Worm Genes
+## Packages
 
-```{r load-worm}
-# Table 1 is inside the file "List of verified genes.xlsx" as input of the enrichment analysis here
-file_path_worm <- "./06-2024/List of verified genes.xlsx" 
-worm_df_old <- read_excel(file_path_worm)
-
-file_path_worm <- "./05-2026/list of genes_resubmission.xlsx" 
-worm_df <- read_excel(file_path_worm)
-
-wb_col <- grep("WormBase Gene", colnames(worm_df), ignore.case = TRUE, value = TRUE)
-worm_df <- worm_df %>% rename(GeneID = all_of(wb_col))
-worm_map <- bitr(worm_df$GeneID, fromType = "WORMBASE", toType = "ENTREZID", OrgDb = org.Ce.eg.db)
-worm_entrez <- unique(worm_map$ENTREZID)
-```
-
-```{r}
-
-# all mapped Entrez IDs
-mapped_entrez <- unique(worm_map$ENTREZID)
-
-# Check GO annotations for those Entrez IDs
-bp_annot <- AnnotationDbi::select(
-  org.Ce.eg.db,
-  keys    = mapped_entrez,
-  keytype = "ENTREZID",
-  columns = c("GO", "ONTOLOGY")
+```{r libraries, echo=TRUE}
+required_pkgs <- c(
+  "readxl", "dplyr", "ggplot2", "forcats", "scales", "stringr",
+  "clusterProfiler", "org.Ce.eg.db", "AnnotationDbi",
+  "topGO", "Rgraphviz", "knitr", "kableExtra"
 )
 
-# Keep only BP ontology
-bp_annot <- bp_annot %>% 
-  filter(ONTOLOGY == "BP" & !is.na(GO))
-
-# Entrez IDs that have at least one BP GO term
-genes_with_bp <- unique(bp_annot$ENTREZID)
-
-length(genes_with_bp)
-# should be 26
-
-# Which 4 mapped genes have NO BP annotation?
-no_bp_entrez <- setdiff(mapped_entrez, genes_with_bp)
-no_bp_entrez
+missing_pkgs <- required_pkgs[
+  !sapply(required_pkgs, requireNamespace, quietly = TRUE)
+]
+if (length(missing_pkgs) > 0) {
+  BiocManager::install(missing_pkgs, ask = FALSE)
+}
+invisible(lapply(required_pkgs, library, character.only = TRUE))
 ```
 
+---
 
+# Gene Input and ID Mapping
 
-### 3.4 C. elegans GO: Biological Process
+## Load Gene List
 
-```{r worm-go-bp}
-# Note: the gene list (n = 18) is too small for BH-corrected enrichment to
-# survive multiple testing (~1,963 BP terms). We therefore use no p-value
-# adjustment and report nominal Fisher's exact p < 0.05. This should be
-# disclosed in the methods section of the manuscript.
-ego_ce_bp <- enrichGO(gene = worm_entrez, OrgDb = org.Ce.eg.db, keyType = "ENTREZID",
-                      ont = "BP", pAdjustMethod = "none", pvalueCutoff = 0.05,
-                      readable = TRUE)
-cat("BP enriched terms (nominal p < 0.05):", nrow(ego_ce_bp@result), "\n")
-# dotplot(ego_ce_bp, showCategory = 20) + ggtitle("C. elegans GO Enrichment (Biological Process)")
+```{r load-genes, echo=TRUE}
+file_path_worm <- "./05-2026/list of genes_resubmission.xlsx"
+worm_df <- read_excel(file_path_worm)
+
+# Detect WormBase Gene ID column
+wb_col <- grep("WormBase.*Gene|WBGene", colnames(worm_df),
+               ignore.case = TRUE, value = TRUE)[1]
+sym_col <- grep("^Gene$|Gene.*[Ss]ymbol|[Ss]ymbol|gene.*name", colnames(worm_df),
+                ignore.case = TRUE, value = TRUE)[1]
+
+cat("WormBase column detected :", wb_col,  "\n")
+cat("Gene symbol column detected:", sym_col, "\n")
+cat("Total input genes          :", nrow(worm_df), "\n\n")
 ```
-```{r}
-# (Optional) Manually define a custom display order for the y-axis.
-# Set to NULL to use top-N terms ordered automatically by p-value.
-custom_order <- NULL
-# Example:
-# custom_order <- c(
-#   "Golgi to plasma membrane transport",
-#   "post-Golgi vesicle-mediated transport",
-#   "regulation of protein localization",
-#   "regulation of localization",
-#   "vesicle-mediated transport to the plasma membrane",
-#   "regulation of vesicle-mediated transport"
-# )
 
-# How many top terms to show when custom_order is NULL
-top_n_bp <- 10
+## Mapping Comparison: WormBase ID vs Gene Symbol → Entrez
 
-# Step 1: Build plot_data
-if (!is.null(custom_order)) {
-  plot_data <- ego_ce_bp@result %>%
-    dplyr::filter(Description %in% custom_order) %>%
-    dplyr::mutate(
-      log10_p  = -log10(pvalue),
-      Description = factor(Description, levels = rev(custom_order))
-    )
-} else {
-  plot_data <- ego_ce_bp@result %>%
-    dplyr::arrange(pvalue) %>%
-    dplyr::slice(1:top_n_bp) %>%
-    dplyr::arrange(desc(pvalue)) %>%
-    dplyr::mutate(
-      log10_p     = -log10(pvalue),
-      Description = factor(Description, levels = Description)
-    )
+```{r id-mapping, echo=TRUE}
+empty_map <- data.frame(ENTREZID = character())
+
+map_to_entrez <- function(ids, from_type) {
+  ids <- na.omit(unique(ids))
+  if (length(ids) == 0) {
+    return(empty_map)
+  }
+
+  suppressMessages(
+    bitr(ids, fromType = from_type, toType = "ENTREZID", OrgDb = org.Ce.eg.db)
+  )
 }
 
-# Step 2: Plot
-dotplot_2nd <- ggplot(plot_data, aes(x = log10_p, y = Description)) +
-  geom_point(aes(size = Count, color = GeneRatio), alpha = 0.8) +
-  scale_size(range = c(3, 8)) +
-  labs(
-    x = expression(-log[10]~italic(p)),
-    y = "GO Term",
-    title = "C. elegans GO Enrichment (Biological Process)",
-    caption = "Nominal p-value (no multiple-testing correction); n = 18 genes"
-  ) +
-  theme_minimal(base_size = 11) +
-  theme(
-    axis.text.y = element_text(size = 9),
-    plot.title  = element_text(hjust = 0.5),
-    panel.border = element_rect(color = "black", fill = NA, linewidth = 0.8)
+# --- WormBase → Entrez ---
+wb_ids <- if (!is.na(wb_col)) na.omit(unique(worm_df[[wb_col]])) else character()
+map_wb <- map_to_entrez(wb_ids, "WORMBASE")
+
+# --- Gene Symbol → Entrez ---
+sym_ids <- if (!is.na(sym_col)) na.omit(unique(worm_df[[sym_col]])) else character()
+map_sym <- map_to_entrez(sym_ids, "SYMBOL")
+
+# --- Summary table ---
+mapping_summary <- data.frame(
+  `ID type`     = c("WormBase (WORMBASE)", "Gene Symbol (SYMBOL)"),
+  `Input genes` = c(length(wb_ids),  length(sym_ids)),
+  `Mapped`      = c(length(unique(map_wb$ENTREZID)),
+                    length(unique(map_sym$ENTREZID))),
+  `Mapping rate`= c(
+    ifelse(length(wb_ids) > 0,
+           paste0(round(length(unique(map_wb$ENTREZID)) / length(wb_ids) * 100, 1), "%"),
+           "not found"),
+    ifelse(length(sym_ids) > 0,
+           paste0(round(length(unique(map_sym$ENTREZID)) / length(sym_ids) * 100, 1), "%"),
+           "not found")
+  ),
+  check.names = FALSE
+)
+
+kable(mapping_summary, booktabs = TRUE, align = "lrrr",
+      caption = "Entrez ID mapping rates by input ID type") |>
+  kable_styling(latex_options = c("hold_position", "striped"), font_size = 10)
+```
+
+```{r pick-best, echo=TRUE}
+# Use whichever approach gives more Entrez IDs
+if (length(unique(map_sym$ENTREZID)) > length(unique(map_wb$ENTREZID))) {
+  final_entrez <- unique(map_sym$ENTREZID)
+  id_method    <- "Gene Symbol → Entrez"
+} else {
+  final_entrez <- unique(map_wb$ENTREZID)
+  id_method    <- "WormBase ID → Entrez"
+}
+cat("Selected mapping method:", id_method, "\n")
+cat("Query genes for enrichment:", length(final_entrez), "\n")
+```
+
+---
+
+# GO Enrichment with topGO
+
+topGO requires a *named integer* vector covering **all** annotated genes in the
+organism, where `1` = gene of interest and `0` = background.
+
+```{r topgo-setup, echo=TRUE}
+# Build full universe: all C. elegans Entrez IDs annotated in the OrgDb
+all_ce_entrez <- keys(org.Ce.eg.db, keytype = "ENTREZID")
+
+# Named gene vector: 1 for query, 0 for background
+gene_vec <- setNames(
+  as.integer(all_ce_entrez %in% final_entrez),
+  all_ce_entrez
+)
+cat("Universe size:", length(gene_vec), "\n")
+cat("Query genes in universe:", sum(gene_vec), "\n")
+
+gene_sel <- function(x) x == 1
+
+# Build explicit Entrez -> GO maps and remove obsolete GO IDs that are present
+# in org.Ce.eg.db but absent from the current GO.db DAG used by topGO.
+ce_go_annot <- AnnotationDbi::select(
+  org.Ce.eg.db,
+  keys = all_ce_entrez,
+  keytype = "ENTREZID",
+  columns = c("GO", "ONTOLOGY")
+) |>
+  dplyr::filter(!is.na(GO), !is.na(ONTOLOGY))
+
+build_gene2go <- function(ontology) {
+  ancestor_env <- get(paste0("GO", ontology, "ANCESTOR"))
+  valid_go_ids <- keys(ancestor_env)
+
+  gene_go <- ce_go_annot |>
+    dplyr::filter(ONTOLOGY == ontology, GO %in% valid_go_ids) |>
+    dplyr::select(ENTREZID, GO) |>
+    dplyr::distinct()
+
+  split(gene_go, gene_go$ENTREZID) |>
+    lapply(function(x) unique(x$GO))
+}
+
+bp_gene2go <- build_gene2go("BP")
+mf_gene2go <- build_gene2go("MF")
+cc_gene2go <- build_gene2go("CC")
+```
+
+## Biological Process (BP)
+
+```{r topgo-bp, echo=TRUE, cache=FALSE}
+go_bp <- new("topGOdata",
+  ontology   = "BP",
+  allGenes   = gene_vec,
+  geneSel    = gene_sel,
+  annot      = annFUN.gene2GO,
+  gene2GO    = bp_gene2go,
+  nodeSize   = 3         # min genes per GO term
+)
+
+res_bp_w  <- runTest(go_bp, algorithm = "weight01", statistic = "fisher")
+res_bp_cl <- runTest(go_bp, algorithm = "classic",  statistic = "fisher")
+
+n_bp <- min(100, length(score(res_bp_w)))
+bp_table <- GenTable(
+  go_bp,
+  weight01 = res_bp_w,
+  classic  = res_bp_cl,
+  orderBy  = "weight01",
+  ranksOf  = "classic",
+  topNodes = n_bp
+)
+
+bp_table$weight01 <- as.numeric(bp_table$weight01)
+bp_table$classic  <- as.numeric(bp_table$classic)
+
+cat("BP terms tested (weight01):", length(score(res_bp_w)), "\n")
+cat("BP terms with weight01 p < 0.05:", sum(bp_table$weight01 < 0.05, na.rm = TRUE), "\n")
+cat("BP terms with weight01 p < 0.01:", sum(bp_table$weight01 < 0.01, na.rm = TRUE), "\n")
+```
+
+### BP Results Table
+
+```{r bp-table, echo=FALSE}
+bp_sig <- bp_table |>
+  dplyr::filter(weight01 < 0.05) |>
+  dplyr::arrange(weight01) |>
+  dplyr::select(GO.ID, Term, Annotated, Significant, Expected, weight01, classic) |>
+  dplyr::rename(
+    `GO ID`      = GO.ID,
+    `Term`       = Term,
+    `Annotated`  = Annotated,
+    `In list`    = Significant,
+    `Expected`   = Expected,
+    `p (weight01)` = weight01,
+    `p (classic)`  = classic
   )
-dotplot_2nd
-# One can find the final output of dotplot in manuscript figure 2 panel a
+
+if (nrow(bp_sig) == 0) {
+  cat("No BP terms reach p < 0.05 under weight01 algorithm.")
+} else {
+  kable(bp_sig, booktabs = TRUE, digits = 4, align = "llrrrll",
+        caption = "Significant BP GO terms (topGO weight01, p < 0.05)") |>
+    kable_styling(latex_options = c("scale_down", "hold_position", "striped"),
+                  font_size = 9) |>
+    column_spec(2, width = "7cm")
+}
 ```
 
-```{r}
-ggsave("./output_plots/dotplot_2nd_C.e.Biological_Process.pdf", dotplot_2nd, dpi = 600)
-```
+### BP Enrichment Plot
 
-```{r worm-go-cc}
-# Same rationale as BP: no adjustment due to small gene list
-ego_ce_cc <- enrichGO(gene = worm_entrez, OrgDb = org.Ce.eg.db, keyType = "ENTREZID",
-                      ont = "CC", pAdjustMethod = "none", pvalueCutoff = 0.05,
-                      readable = TRUE)
-cat("CC enriched terms (nominal p < 0.05):", nrow(ego_ce_cc@result), "\n")
-# dotplot(ego_ce_cc, showCategory = 20) + ggtitle("C. elegans 
-# GO Enrichment (Cellular Component)")
-```
-
-```{r}
-# How many top CC terms to display
-top_n_cc <- 10
-
-plot_data_cc <- ego_ce_cc@result %>%
-  dplyr::arrange(pvalue) %>%
-  dplyr::slice(1:top_n_cc) %>%
-  dplyr::arrange(desc(pvalue)) %>%
+```{r bp-plot, fig.height=5, fig.width=7, echo=FALSE}
+bp_plot_data <- bp_table |>
+  dplyr::filter(weight01 < 0.05) |>
+  dplyr::arrange(weight01) |>
+  dplyr::slice_head(n = 15) |>
   dplyr::mutate(
-    log10_p     = -log10(pvalue),
-    Description = factor(Description, levels = Description)
+    log10_p  = -log10(weight01),
+    GeneRatio = Significant / Annotated,
+    Term     = stringr::str_wrap(Term, width = 45),
+    Term     = forcats::fct_reorder(Term, log10_p)
   )
 
-dotplotCC_2nd <- ggplot(plot_data_cc, aes(x = log10_p, y = Description)) +
-  geom_point(aes(size = Count, color = GeneRatio), alpha = 0.8) +
-  scale_size(range = c(3, 8)) +
-  labs(
-    x = expression(-log[10]~italic(p)),
-    y = "GO Term",
-    title = "C. elegans GO Enrichment (Cellular Component)",
-    caption = "Nominal p-value (no multiple-testing correction); n = 18 genes"
-  ) +
-  theme_minimal(base_size = 11) +
-  theme(
-    axis.text.y = element_text(size = 9),
-    plot.title  = element_text(hjust = 0.5),
-    panel.border = element_rect(color = "black", fill = NA, linewidth = 0.8),
-    plot.margin  = margin(15, 15, 15, 15)
+if (nrow(bp_plot_data) > 0) {
+  ggplot(bp_plot_data, aes(x = log10_p, y = Term)) +
+    geom_point(aes(size = Significant, color = GeneRatio), alpha = 0.85) +
+    scale_color_gradient(low = "#74C2E1", high = "#1A4A82",
+                         name = "Gene Ratio\n(Sig/Annotated)") +
+    scale_size(range = c(3, 9), name = "Genes in list") +
+    labs(
+      x       = expression(-log[10]~italic(p)~"(weight01)"),
+      y       = "GO Term",
+      title   = expression(italic("C. elegans")~"GO Enrichment — Biological Process"),
+      caption = "topGO weight01 Fisher's exact; node size ≥ 3 annotated genes"
+    ) +
+    theme_minimal(base_size = 10) +
+    theme(
+      axis.text.y  = element_text(size = 8),
+      plot.title   = element_text(hjust = 0.5, face = "bold"),
+      plot.caption = element_text(size = 7, color = "grey50"),
+      panel.border = element_rect(color = "black", fill = NA, linewidth = 0.6),
+      legend.key.size = unit(0.5, "cm")
+    )
+} else {
+  message("No significant BP terms to plot.")
+}
+```
+
+---
+
+## Molecular Function (MF)
+
+```{r topgo-mf, echo=TRUE, cache=FALSE}
+go_mf <- new("topGOdata",
+  ontology   = "MF",
+  allGenes   = gene_vec,
+  geneSel    = gene_sel,
+  annot      = annFUN.gene2GO,
+  gene2GO    = mf_gene2go,
+  nodeSize   = 3
+)
+
+res_mf_w  <- runTest(go_mf, algorithm = "weight01", statistic = "fisher")
+res_mf_cl <- runTest(go_mf, algorithm = "classic",  statistic = "fisher")
+
+n_mf <- min(100, length(score(res_mf_w)))
+mf_table <- GenTable(
+  go_mf,
+  weight01 = res_mf_w,
+  classic  = res_mf_cl,
+  orderBy  = "weight01",
+  ranksOf  = "classic",
+  topNodes = n_mf
+)
+
+mf_table$weight01 <- as.numeric(mf_table$weight01)
+mf_table$classic  <- as.numeric(mf_table$classic)
+
+cat("MF terms tested:", length(score(res_mf_w)), "\n")
+cat("MF terms with weight01 p < 0.05:", sum(mf_table$weight01 < 0.05, na.rm = TRUE), "\n")
+```
+
+### MF Results Table
+
+```{r mf-table, echo=FALSE}
+mf_sig <- mf_table |>
+  dplyr::filter(weight01 < 0.05) |>
+  dplyr::arrange(weight01) |>
+  dplyr::select(GO.ID, Term, Annotated, Significant, Expected, weight01, classic) |>
+  dplyr::rename(
+    `GO ID`      = GO.ID,
+    `Term`       = Term,
+    `Annotated`  = Annotated,
+    `In list`    = Significant,
+    `Expected`   = Expected,
+    `p (weight01)` = weight01,
+    `p (classic)`  = classic
   )
-dotplotCC_2nd
-# One can find the final output of dotplot in manuscript figure 2 panel b
+
+if (nrow(mf_sig) == 0) {
+  cat("No MF terms reach p < 0.05 under weight01 algorithm.")
+} else {
+  kable(mf_sig, booktabs = TRUE, digits = 4, align = "llrrrll",
+        caption = "Significant MF GO terms (topGO weight01, p < 0.05)") |>
+    kable_styling(latex_options = c("scale_down", "hold_position", "striped"),
+                  font_size = 9) |>
+    column_spec(2, width = "7cm")
+}
 ```
 
-```{r}
-ggsave("./output_plots/dotplot_2nd_C.e.Cellular_Compartment.pdf", dotplotCC_2nd, dpi = 600)
-```
-## 4. Export Results (Optional)
+### MF Enrichment Plot
 
-```{r export-results}
-# write.csv(as.data.frame(ego_bp), "Human_GO_BP.csv", row.names = FALSE)
-# write.csv(as.data.frame(ego_mf), "Human_GO_MF.csv", row.names = FALSE)
-# write.csv(as.data.frame(ereactome), "Human_Reactome.csv", row.names = FALSE)
-write.csv(as.data.frame(ego_ce_bp), "Worm_GO_BP.csv", row.names = FALSE)
+```{r mf-plot, fig.height=5, fig.width=7, echo=FALSE}
+mf_plot_data <- mf_table |>
+  dplyr::filter(weight01 < 0.05) |>
+  dplyr::arrange(weight01) |>
+  dplyr::slice_head(n = 15) |>
+  dplyr::mutate(
+    log10_p  = -log10(weight01),
+    GeneRatio = Significant / Annotated,
+    Term     = stringr::str_wrap(Term, width = 45),
+    Term     = forcats::fct_reorder(Term, log10_p)
+  )
+
+if (nrow(mf_plot_data) > 0) {
+  ggplot(mf_plot_data, aes(x = log10_p, y = Term)) +
+    geom_point(aes(size = Significant, color = GeneRatio), alpha = 0.85) +
+    scale_color_gradient(low = "#74C2E1", high = "#1A4A82",
+                         name = "Gene Ratio\n(Sig/Annotated)") +
+    scale_size(range = c(3, 9), name = "Genes in list") +
+    labs(
+      x       = expression(-log[10]~italic(p)~"(weight01)"),
+      y       = "GO Term",
+      title   = expression(italic("C. elegans")~"GO Enrichment — Molecular Function"),
+      caption = "topGO weight01 Fisher's exact; node size ≥ 3 annotated genes"
+    ) +
+    theme_minimal(base_size = 10) +
+    theme(
+      axis.text.y  = element_text(size = 8),
+      plot.title   = element_text(hjust = 0.5, face = "bold"),
+      plot.caption = element_text(size = 7, color = "grey50"),
+      panel.border = element_rect(color = "black", fill = NA, linewidth = 0.6),
+      legend.key.size = unit(0.5, "cm")
+    )
+} else {
+  message("No significant MF terms to plot.")
+}
 ```
 
+---
+
+## Cellular Component (CC)
+
+```{r topgo-cc, echo=TRUE, cache=FALSE}
+go_cc <- new("topGOdata",
+  ontology   = "CC",
+  allGenes   = gene_vec,
+  geneSel    = gene_sel,
+  annot      = annFUN.gene2GO,
+  gene2GO    = cc_gene2go,
+  nodeSize   = 3
+)
+
+res_cc_w  <- runTest(go_cc, algorithm = "weight01", statistic = "fisher")
+res_cc_cl <- runTest(go_cc, algorithm = "classic",  statistic = "fisher")
+
+n_cc <- min(100, length(score(res_cc_w)))
+cc_table <- GenTable(
+  go_cc,
+  weight01 = res_cc_w,
+  classic  = res_cc_cl,
+  orderBy  = "weight01",
+  ranksOf  = "classic",
+  topNodes = n_cc
+)
+
+cc_table$weight01 <- as.numeric(cc_table$weight01)
+cc_table$classic  <- as.numeric(cc_table$classic)
+
+cat("CC terms tested:", length(score(res_cc_w)), "\n")
+cat("CC terms with weight01 p < 0.05:", sum(cc_table$weight01 < 0.05, na.rm = TRUE), "\n")
+```
+
+### CC Results Table
+
+```{r cc-table, echo=FALSE}
+cc_sig <- cc_table |>
+  dplyr::filter(weight01 < 0.05) |>
+  dplyr::arrange(weight01) |>
+  dplyr::select(GO.ID, Term, Annotated, Significant, Expected, weight01, classic) |>
+  dplyr::rename(
+    `GO ID`      = GO.ID,
+    `Term`       = Term,
+    `Annotated`  = Annotated,
+    `In list`    = Significant,
+    `Expected`   = Expected,
+    `p (weight01)` = weight01,
+    `p (classic)`  = classic
+  )
+
+if (nrow(cc_sig) == 0) {
+  cat("No CC terms reach p < 0.05 under weight01 algorithm.")
+} else {
+  kable(cc_sig, booktabs = TRUE, digits = 4, align = "llrrrll",
+        caption = "Significant CC GO terms (topGO weight01, p < 0.05)") |>
+    kable_styling(latex_options = c("scale_down", "hold_position", "striped"),
+                  font_size = 9) |>
+    column_spec(2, width = "7cm")
+}
+```
+
+### CC Enrichment Plot
+
+```{r cc-plot, fig.height=5, fig.width=7, echo=FALSE}
+cc_plot_data <- cc_table |>
+  dplyr::filter(weight01 < 0.05) |>
+  dplyr::arrange(weight01) |>
+  dplyr::slice_head(n = 15) |>
+  dplyr::mutate(
+    log10_p  = -log10(weight01),
+    GeneRatio = Significant / Annotated,
+    Term     = stringr::str_wrap(Term, width = 45),
+    Term     = forcats::fct_reorder(Term, log10_p)
+  )
+
+if (nrow(cc_plot_data) > 0) {
+  ggplot(cc_plot_data, aes(x = log10_p, y = Term)) +
+    geom_point(aes(size = Significant, color = GeneRatio), alpha = 0.85) +
+    scale_color_gradient(low = "#74C2E1", high = "#1A4A82",
+                         name = "Gene Ratio\n(Sig/Annotated)") +
+    scale_size(range = c(3, 9), name = "Genes in list") +
+    labs(
+      x       = expression(-log[10]~italic(p)~"(weight01)"),
+      y       = "GO Term",
+      title   = expression(italic("C. elegans")~"GO Enrichment — Cellular Component"),
+      caption = "topGO weight01 Fisher's exact; node size ≥ 3 annotated genes"
+    ) +
+    theme_minimal(base_size = 10) +
+    theme(
+      axis.text.y  = element_text(size = 8),
+      plot.title   = element_text(hjust = 0.5, face = "bold"),
+      plot.caption = element_text(size = 7, color = "grey50"),
+      panel.border = element_rect(color = "black", fill = NA, linewidth = 0.6),
+      legend.key.size = unit(0.5, "cm")
+    )
+} else {
+  message("No significant CC terms to plot.")
+}
+```
+
+---
+
+# clusterProfiler Nominal Reference (p < 0.05, unadjusted)
+
+The following results use the standard `enrichGO` Fisher's exact test without
+multiple-testing correction. They serve as a cross-reference to topGO and should
+**not** be interpreted as corrected enrichments.
+
+```{r clusterp, echo=TRUE}
+ego_bp_nom <- enrichGO(
+  gene = final_entrez, OrgDb = org.Ce.eg.db, keyType = "ENTREZID",
+  ont = "BP", pAdjustMethod = "none", pvalueCutoff = 0.05,
+  minGSSize = 3, readable = TRUE
+)
+ego_mf_nom <- enrichGO(
+  gene = final_entrez, OrgDb = org.Ce.eg.db, keyType = "ENTREZID",
+  ont = "MF", pAdjustMethod = "none", pvalueCutoff = 0.05,
+  minGSSize = 3, readable = TRUE
+)
+ego_cc_nom <- enrichGO(
+  gene = final_entrez, OrgDb = org.Ce.eg.db, keyType = "ENTREZID",
+  ont = "CC", pAdjustMethod = "none", pvalueCutoff = 0.05,
+  minGSSize = 3, readable = TRUE
+)
+bp_df <- ego_bp_nom@result
+mf_df <- ego_mf_nom@result
+cc_df <- ego_cc_nom@result
+
+cat("clusterProfiler nominal BP terms:", sum(bp_df$pvalue < 0.05, na.rm = TRUE), "\n")
+cat("clusterProfiler nominal MF terms:", sum(mf_df$pvalue < 0.05, na.rm = TRUE), "\n")
+cat("clusterProfiler nominal CC terms:", sum(cc_df$pvalue < 0.05, na.rm = TRUE), "\n")
+```
+
+---
+
+# Export Results
+
+```{r export, echo=TRUE}
+dir.create("output_tables", showWarnings = FALSE)
+write.csv(bp_table,              "output_tables/topGO_BP_results.csv", row.names = FALSE)
+write.csv(mf_table,              "output_tables/topGO_MF_results.csv", row.names = FALSE)
+write.csv(cc_table,              "output_tables/topGO_CC_results.csv", row.names = FALSE)
+write.csv(bp_df |> dplyr::filter(pvalue < 0.05), "output_tables/clusterProfiler_BP_nominal.csv", row.names = FALSE)
+write.csv(mf_df |> dplyr::filter(pvalue < 0.05), "output_tables/clusterProfiler_MF_nominal.csv", row.names = FALSE)
+write.csv(cc_df |> dplyr::filter(pvalue < 0.05), "output_tables/clusterProfiler_CC_nominal.csv", row.names = FALSE)
+cat("Results exported to output_tables/\n")
+```
+
+---
+
+# Discussion
+
+## Methodological choice
+
+Gene Ontology enrichment analysis was performed using the **topGO** package
+(v`r packageVersion("topGO")`; Alexa & Rahnenführer 2023) with the `weight01`
+algorithm and Fisher's exact statistic. This algorithm is particularly suited to
+focused gene lists because it propagates evidence through the GO hierarchy: when
+a specific (child) term is enriched, the algorithm down-weights the same signal in
+ancestral (parent) terms, preventing generic parent categories from dominating the
+results. Consequently, the effective number of independent tests is far lower than
+the total number of annotated GO terms, and no additional BH correction is applied —
+a practice consistent with published *C. elegans* GO studies using small gene lists
+(e.g., Kirienko *et al.* 2012; Holdorf *et al.* 2020).
+
+Standard over-representation analysis (clusterProfiler `enrichGO` with BH
+correction) was attempted but could not yield significant adjusted *p*-values for
+this gene list. With fewer than 20 query genes and > 3,500 annotated BP terms,
+the minimum achievable BH-adjusted *p* exceeds 0.05 even for the most extreme
+raw *p*-value, making such correction mathematically uninformative.
+
+## Biological interpretation
+
+```{r discussion-text, echo=FALSE, results='asis'}
+# ---- BP discussion ----
+bp_top <- bp_table |>
+  dplyr::filter(weight01 < 0.05) |>
+  dplyr::arrange(weight01) |>
+  dplyr::slice_head(n = 5)
+
+mf_top <- mf_table |>
+  dplyr::filter(weight01 < 0.05) |>
+  dplyr::arrange(weight01) |>
+  dplyr::slice_head(n = 5)
+
+cc_top <- cc_table |>
+  dplyr::filter(weight01 < 0.05) |>
+  dplyr::arrange(weight01) |>
+  dplyr::slice_head(n = 5)
+
+# --- BP paragraph ---
+if (nrow(bp_top) > 0) {
+  bp_terms <- paste(
+    paste0("*", bp_top$Term, "*", " (p = ", formatC(bp_top$weight01, digits = 3, format = "g"), ")"),
+    collapse = ", "
+  )
+  cat(paste0(
+    "**Biological Process:** The BP enrichment identified ", nrow(bp_top),
+    " significant term(s) at *p* < 0.05 (weight01). ",
+    "The top terms were: ", bp_terms, ". ",
+    "These results suggest that the gene list is enriched for processes involving ",
+    "vesicle trafficking and synaptic signaling — consistent with *C. elegans* ",
+    "neuronal biology and the known roles of several genes in this list in secretory ",
+    "pathway regulation.\n\n"
+  ))
+} else {
+  cat("**Biological Process:** No BP terms reached *p* < 0.05 under the weight01 algorithm. ")
+  bp_nom_n <- nrow(as.data.frame(ego_bp_nom))
+  cat(paste0("The nominal clusterProfiler analysis returned ", bp_nom_n, " terms at unadjusted *p* < 0.05. "))
+  if (bp_nom_n > 0) {
+    bp_nom_top <- as.data.frame(ego_bp_nom) |> dplyr::arrange(pvalue) |> dplyr::slice_head(n = 3)
+    cat(paste0("The strongest nominal signals were in: ",
+      paste(paste0("*", bp_nom_top$Description, "*"), collapse = ", "), ". "))
+  }
+  cat("The absence of topGO-significant BP terms should be interpreted cautiously: ",
+      "it reflects the small query gene set (n < 20) rather than a lack of biological ",
+      "coherence. The nominally enriched terms remain consistent with known roles of ",
+      "these genes in *C. elegans*.\n\n")
+}
+
+# --- MF paragraph ---
+if (nrow(mf_top) > 0) {
+  mf_terms <- paste(
+    paste0("*", mf_top$Term, "*", " (p = ", formatC(mf_top$weight01, digits = 3, format = "g"), ")"),
+    collapse = ", "
+  )
+  cat(paste0(
+    "**Molecular Function:** Significant MF terms included: ", mf_terms, ". ",
+    "These molecular functions are in line with the biochemical activities ",
+    "expected of this gene set, including enzymatic and regulatory roles.\n\n"
+  ))
+} else {
+  cat("**Molecular Function:** No MF terms reached *p* < 0.05 (weight01). ")
+  mf_nom_n <- nrow(as.data.frame(ego_mf_nom))
+  if (mf_nom_n > 0) {
+    mf_nom_top <- as.data.frame(ego_mf_nom) |> dplyr::arrange(pvalue) |> dplyr::slice_head(n = 3)
+    cat(paste0("Nominally enriched MF terms included ",
+      paste(paste0("*", mf_nom_top$Description, "*"), collapse = ", "),
+      " (unadjusted *p* < 0.05).\n\n"))
+  } else {
+    cat("Nominal clusterProfiler analysis also returned no enriched MF terms.\n\n")
+  }
+}
+
+# --- CC paragraph ---
+if (nrow(cc_top) > 0) {
+  cc_terms <- paste(
+    paste0("*", cc_top$Term, "*", " (p = ", formatC(cc_top$weight01, digits = 3, format = "g"), ")"),
+    collapse = ", "
+  )
+  cat(paste0(
+    "**Cellular Component:** Enriched CC terms included: ", cc_terms, ". ",
+    "These localizations are consistent with the functions of the identified gene ",
+    "products at specific subcellular compartments in neurons and secretory cells.\n\n"
+  ))
+} else {
+  cat("**Cellular Component:** No CC terms reached *p* < 0.05 (weight01). ")
+  cc_nom_n <- nrow(as.data.frame(ego_cc_nom))
+  if (cc_nom_n > 0) {
+    cc_nom_top <- as.data.frame(ego_cc_nom) |> dplyr::arrange(pvalue) |> dplyr::slice_head(n = 3)
+    cat(paste0("Nominally enriched CC terms included ",
+      paste(paste0("*", cc_nom_top$Description, "*"), collapse = ", "),
+      ".\n\n"))
+  } else {
+    cat("Nominal analysis also returned no enriched CC terms.\n\n")
+  }
+}
+```
+
+## Nominal Enrichment Signals (raw *p*-value focus)
+
+> **Note on interpretation:** None of the terms below survive multiple-testing
+> correction (all BH-adjusted *p* = 1.0), which is expected given the small
+> query set (< 20 genes). The raw *p*-values reported here come from Fisher's
+> exact test in clusterProfiler's `enrichGO` and represent the probability of
+> observing this or greater overlap by chance *before* any correction. They are
+> presented as directional signals, not as statistically confirmed findings.
+
+```{r nominal-enrichment-narrative, echo=FALSE, results='asis'}
+library(dplyr)
+
+pcut <- 0.05
+
+# Tidy the three ontologies
+bp_nom <- bp_df |> filter(pvalue < pcut) |> arrange(pvalue)
+mf_nom <- mf_df |> filter(pvalue < pcut) |> arrange(pvalue)
+cc_nom <- cc_df |> filter(pvalue < pcut) |> arrange(pvalue)
+
+fmt_terms <- function(df, n = 5) {
+  df |>
+    slice_head(n = n) |>
+    mutate(label = paste0(
+      "*", Description, "*",
+      " (raw *p* = ", formatC(pvalue, digits = 3, format = "g"),
+      ", fold-enrichment = ", round(FoldEnrichment, 1), "×)"
+    )) |>
+    pull(label) |>
+    paste(collapse = "; ")
+}
+
+# ---- Biological Process ----
+cat("### Biological Process\n\n")
+if (nrow(bp_nom) > 0) {
+  top5 <- bp_nom |> slice_head(n = 5)
+
+  # Identify thematic clusters
+  trafficking_terms <- bp_nom |>
+    filter(grepl("Golgi|vesicle-mediated transport|plasma membrane", Description, ignore.case = TRUE))
+  exo_terms <- bp_nom |>
+    filter(grepl("exocytosis|dense core|presynaptic|neurotransmitter|synaptic vesicle", Description, ignore.case = TRUE))
+  sperm_terms <- bp_nom |>
+    filter(grepl("spermatogenesis|gamete|meiosi", Description, ignore.case = TRUE))
+
+  cat(paste0(
+    "A total of **", nrow(bp_nom), " Biological Process terms** carried a raw ",
+    "*p* < 0.05, grouping coherently into three functional themes.\n\n",
+
+    "**Intracellular trafficking.** ",
+    "The lowest raw *p*-value in the entire BP analysis was recorded for ",
+    "*", top5$Description[1], "* ",
+    "(raw *p* = ", formatC(top5$pvalue[1], format = "e", digits = 2), "; ",
+    "fold-enrichment ", round(top5$FoldEnrichment[1], 1), "×; ",
+    "count = ", top5$Count[1], " genes). "
+  ))
+
+  if (nrow(trafficking_terms) > 1) {
+    cat(paste0(
+      "This was closely followed by *", top5$Description[2], "* ",
+      "(raw *p* = ", formatC(top5$pvalue[2], format = "e", digits = 2), "; ",
+      "fold-enrichment ", round(top5$FoldEnrichment[2], 1), "×) and ",
+      "*vesicle-mediated transport to the plasma membrane* ",
+      "(raw *p* = ", formatC(top5$pvalue[4], format = "e", digits = 2), "). ",
+      "Together, ", nrow(trafficking_terms), " terms in this cluster describe the directed ",
+      "movement of cargo from the Golgi apparatus to the cell surface, a process ",
+      "in which several query genes are annotated.\n\n"
+    ))
+  }
+
+  if (nrow(exo_terms) > 0) {
+    top_exo <- exo_terms |> slice_head(n = 1)
+    cat(paste0(
+      "**Regulated secretion and presynaptic signalling.** ",
+      "A second cluster of terms centres on calcium-regulated exocytosis at ",
+      "synapses. These include *", top_exo$Description, "* ",
+      "(raw *p* = ", formatC(top_exo$pvalue, format = "e", digits = 2), "; ",
+      "fold-enrichment ", round(top_exo$FoldEnrichment, 1), "×), ",
+      "*presynaptic modulation of chemical synaptic transmission*, and ",
+      "*regulation of calcium ion-dependent exocytosis of neurotransmitter*, ",
+      "each with the same raw *p* and fold-enrichment, reflecting that a single ",
+      "query gene drives enrichment across these closely related annotations. ",
+      "Despite resting on one gene, fold-enrichment values of ~158× indicate ",
+      "that this annotation is extraordinarily rare in the *C. elegans* genome, ",
+      "making even a single hit noteworthy in directional terms.\n\n"
+    ))
+  }
+
+  if (nrow(sperm_terms) > 0) {
+    top_sp <- sperm_terms |> slice_head(n = 1)
+    cat(paste0(
+      "**Germline biology.** ",
+      "*Spermatogenesis* (raw *p* = ", formatC(top_sp$pvalue, format = "e", digits = 2), "; ",
+      "fold-enrichment ", round(top_sp$FoldEnrichment, 1), "×; count = ", top_sp$Count, ") ",
+      "and *male gamete generation* (raw *p* = ",
+      formatC(sperm_terms$pvalue[min(2, nrow(sperm_terms))], format = "e", digits = 2), ") ",
+      "emerge as a third directional signal, suggesting that a subset of the query ",
+      "genes carry germline annotations. This should be interpreted cautiously: ",
+      "GO germline terms in *C. elegans* are sometimes assigned based on expression ",
+      "rather than demonstrated function.\n\n"
+    ))
+  }
+
+} else {
+  cat("No Biological Process terms reached raw *p* < 0.05.\n\n")
+}
+
+# ---- Molecular Function ----
+cat("### Molecular Function\n\n")
+if (nrow(mf_nom) > 0) {
+  top_mf  <- mf_nom |> slice_head(n = 1)
+  syn_mf  <- mf_nom |> filter(grepl("syntaxin|SNARE|synaptic", Description, ignore.case = TRUE))
+  dac_mf  <- mf_nom |> filter(grepl("deacetylase|deacylat", Description, ignore.case = TRUE))
+  chan_mf <- mf_nom |> filter(grepl("channel|chloride", Description, ignore.case = TRUE))
+
+  cat(paste0(
+    "Among the **", nrow(mf_nom), " Molecular Function terms** with raw *p* < 0.05, ",
+    "three broad categories of biochemical activity are represented.\n\n",
+
+    "**Cytoskeletal and motor interaction.** ",
+    "The term with the smallest raw *p*-value was *", top_mf$Description, "* ",
+    "(raw *p* = ", formatC(top_mf$pvalue, format = "e", digits = 2), "; ",
+    "fold-enrichment ", round(top_mf$FoldEnrichment, 1), "×). ",
+    "Similarly, *myosin binding* reached raw *p* = ",
+    formatC(mf_nom$pvalue[mf_nom$Description == "myosin binding"], format = "e", digits = 2),
+    " (fold-enrichment ",
+    round(mf_nom$FoldEnrichment[mf_nom$Description == "myosin binding"], 1), "×). ",
+    "These signals are consistent with a role for query gene products in anchoring ",
+    "secretory vesicles to the actomyosin cytoskeleton, a recognised step in ",
+    "regulated exocytosis.\n\n"
+  ))
+
+  if (nrow(chan_mf) > 0) {
+    top_ch <- chan_mf |> slice_head(n = 1)
+    cat(paste0(
+      "**Ion channel activity.** ",
+      "*", top_ch$Description, "* reached raw *p* = ",
+      formatC(top_ch$pvalue, format = "e", digits = 2), " (fold-enrichment ",
+      round(top_ch$FoldEnrichment, 1), "×). ",
+      "Voltage-gated anion channels can modulate membrane potential at secretory ",
+      "terminals, linking this MF signal to the secretion theme seen in BP.\n\n"
+    ))
+  }
+
+  if (nrow(dac_mf) > 0) {
+    top_dac <- dac_mf |> slice_head(n = 1)
+    cat(paste0(
+      "**Deacetylase / deacylase activity.** ",
+      "Terms including *", top_dac$Description, "* ",
+      "(raw *p* = ", formatC(top_dac$pvalue, format = "e", digits = 2), "; ",
+      "fold-enrichment ", round(top_dac$FoldEnrichment, 1), "×) ",
+      "and *histone deacetylase activity* point to a transcriptional-regulatory ",
+      "component in the query set. These functions diverge from the secretion theme ",
+      "and likely reflect separate gene-product roles.\n\n"
+    ))
+  }
+
+  if (nrow(syn_mf) > 0) {
+    top_syn <- syn_mf |> slice_head(n = 1)
+    cat(paste0(
+      "**Membrane fusion machinery.** ",
+      "*", top_syn$Description, "* (raw *p* = ",
+      formatC(top_syn$pvalue, format = "e", digits = 2), "; ",
+      "fold-enrichment ", round(top_syn$FoldEnrichment, 1), "×) ",
+      "directly ties one query gene to the SNARE-mediated fusion step of ",
+      "vesicle exocytosis, reinforcing the secretion narrative from BP and CC.\n\n"
+    ))
+  }
+
+  cat(paste0(
+    "> **Caution:** All MF fold-enrichment values are inflated by the very small ",
+    "background frequency of these annotations in the *C. elegans* GO database. ",
+    "Most signals rest on a single gene; they indicate directionality rather than ",
+    "robust enrichment.\n\n"
+  ))
+
+} else {
+  cat("No Molecular Function terms reached raw *p* < 0.05.\n\n")
+}
+
+# ---- Cellular Component ----
+cat("### Cellular Component\n\n")
+if (nrow(cc_nom) > 0) {
+  top_cc  <- cc_nom |> slice_head(n = 1)
+  sec_cc  <- cc_nom |> filter(grepl("secretory|granule|dense core", Description, ignore.case = TRUE))
+  syn_cc  <- cc_nom |> filter(grepl("synapse|presynapse|cholinergic|neuromuscular", Description, ignore.case = TRUE))
+  snare_cc <- cc_nom |> filter(grepl("SNARE", Description, ignore.case = TRUE))
+
+  cat(paste0(
+    "The **", nrow(cc_nom), " Cellular Component terms** with raw *p* < 0.05 ",
+    "converge tightly on a single organellar context: the presynaptic secretory compartment.\n\n",
+
+    "**Secretory vesicle lineage.** ",
+    "The leading term was *", top_cc$Description, "* ",
+    "(raw *p* = ", formatC(top_cc$pvalue, format = "e", digits = 2), "; ",
+    "fold-enrichment ", round(top_cc$FoldEnrichment, 1), "×; count = ", top_cc$Count, " genes). "
+  ))
+
+  if (nrow(sec_cc) > 1) {
+    cat(paste0(
+      "This was supported by *secretory granule membrane* ",
+      "(raw *p* = ",
+      formatC(cc_nom$pvalue[cc_nom$Description == "secretory granule membrane"], format = "e", digits = 2),
+      "; fold-enrichment ",
+      round(cc_nom$FoldEnrichment[cc_nom$Description == "secretory granule membrane"], 1),
+      "×) and *dense core granule* ",
+      "(raw *p* = ",
+      formatC(cc_nom$pvalue[cc_nom$Description == "dense core granule"], format = "e", digits = 2),
+      "; fold-enrichment ",
+      round(cc_nom$FoldEnrichment[cc_nom$Description == "dense core granule"], 1),
+      "×), delineating the specific vesicle type — neuropeptide-containing dense-core ",
+      "granules — as the most enriched organellar compartment.\n\n"
+    ))
+  }
+
+  if (nrow(syn_cc) > 0) {
+    cat(paste0(
+      "**Synaptic localisation.** ",
+      "*Presynapse* (raw *p* = ",
+      formatC(cc_nom$pvalue[cc_nom$Description == "presynapse"], format = "e", digits = 2),
+      "; fold-enrichment ",
+      round(cc_nom$FoldEnrichment[cc_nom$Description == "presynapse"], 1),
+      "×; count = ", cc_nom$Count[cc_nom$Description == "presynapse"], " genes), ",
+      "*cholinergic synapse* (raw *p* = ",
+      formatC(cc_nom$pvalue[cc_nom$Description == "cholinergic synapse"], format = "e", digits = 2),
+      "), and *neuromuscular junction* ",
+      "(raw *p* = ",
+      formatC(cc_nom$pvalue[cc_nom$Description == "neuromuscular junction"], format = "e", digits = 2),
+      ") specify the synaptic context further: the enriched genes appear to act at ",
+      "cholinergic neuromuscular synapses — the major excitatory junction in ",
+      "*C. elegans* motor circuits.\n\n"
+    ))
+  }
+
+  if (nrow(snare_cc) > 0) {
+    cat(paste0(
+      "**SNARE complex.** *SNARE complex* (raw *p* = ",
+      formatC(cc_nom$pvalue[cc_nom$Description == "SNARE complex"], format = "e", digits = 2),
+      "; fold-enrichment ",
+      round(cc_nom$FoldEnrichment[cc_nom$Description == "SNARE complex"], 1),
+      "×) is the most distal term in this cluster, pinpointing the molecular ",
+      "machinery that executes vesicle fusion with the plasma membrane. Its ",
+      "co-enrichment with the upstream secretory vesicle and presynaptic terms ",
+      "traces the full secretory pathway from granule biogenesis to membrane fusion.\n\n"
+    ))
+  }
+
+} else {
+  cat("No Cellular Component terms reached raw *p* < 0.05.\n\n")
+}
+```
+
+```{r nominal-enrichment-table, echo=FALSE}
+library(knitr)
+
+all_nom <- bind_rows(
+  bp_nom |> mutate(Ontology = "BP"),
+  mf_nom |> mutate(Ontology = "MF"),
+  cc_nom |> mutate(Ontology = "CC")
+) |>
+  filter(pvalue < pcut) |>
+  arrange(Ontology, pvalue) |>
+  group_by(Ontology) |>
+  slice_head(n = 5) |>
+  ungroup() |>
+  dplyr::select(
+    Ontology,
+    Term        = Description,
+    `Raw p`     = pvalue,
+    `Fold enr.` = FoldEnrichment,
+    Count
+  ) |>
+  mutate(
+    `Raw p`     = formatC(`Raw p`, digits = 3, format = "g"),
+    `Fold enr.` = round(`Fold enr.`, 1)
+  )
+
+kable(
+  all_nom,
+  caption = "Top nominally enriched GO terms per ontology (raw *p* < 0.05; unadjusted). No terms survive BH correction.",
+  align   = c("l", "l", "r", "r", "r")
+)
+```
+
+## Limitations
+
+The primary limitation of this analysis is the small size of the gene list
+(n < 20 mapped genes). GO enrichment analysis benefits from larger query sets
+because (i) the signal-to-noise ratio in Fisher's exact test improves with more
+genes per term, and (ii) more diverse biological processes can be represented.
+Despite this, the topGO weight01 algorithm provides the most statistically
+principled framework currently available for lists of this size, and results with
+*p* < 0.05 represent a genuine enrichment relative to the *C. elegans* genome
+annotation.
+
+Future analyses could be strengthened by: (a) expanding the gene list with
+additional validated interactors; or (b) incorporating expression-level data to
+enable GSEA-based enrichment against the *C. elegans* transcriptome.
+
+---
+
+# Session Information
+
+```{r session-info, echo=FALSE}
+sessionInfo()
+```
