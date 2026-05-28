@@ -1025,8 +1025,6 @@ compartment organization in *C. elegans*.
 
 ---
 
-# Session Information
-
 ```{r session-info, echo=FALSE}
-sessionInfo()
+
 ```
