@@ -1,0 +1,373 @@
+---
+title: "C. elegans Smaller Gene Set GO Analysis - Manuscript Method"
+subtitle: "clusterProfiler over-representation analysis with BH correction"
+date: "`r format(Sys.Date(), '%B %d, %Y')`"
+output:
+  html_document:
+    toc: true
+    toc_depth: 3
+    df_print: paged
+  pdf_document:
+    toc: true
+    toc_depth: 3
+    latex_engine: xelatex
+geometry: margin=2.5cm
+fontsize: 11pt
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  message = FALSE,
+  warning = FALSE,
+  fig.width = 7,
+  fig.height = 5,
+  fig.align = "center",
+  out.width = "95%"
+)
+```
+
+# Purpose
+
+This report reruns the smaller *C. elegans* gene set using the same
+over-representation approach used in the manuscript-style analysis:
+`clusterProfiler::enrichGO()` with Benjamini-Hochberg (BH) multiple-testing
+correction. This is intentionally different from the later `topGO` analysis.
+The goal is to document that the smaller gene set does not yield significant
+BH-adjusted GO terms under the stricter manuscript method.
+
+# Packages
+
+```{r libraries}
+required_pkgs <- c(
+  "readxl", "dplyr", "ggplot2", "clusterProfiler", "org.Ce.eg.db",
+  "enrichplot", "knitr", "kableExtra"
+)
+
+missing_pkgs <- required_pkgs[
+  !sapply(required_pkgs, requireNamespace, quietly = TRUE)
+]
+if (length(missing_pkgs) > 0) {
+  BiocManager::install(missing_pkgs, ask = FALSE)
+}
+
+invisible(lapply(required_pkgs, library, character.only = TRUE))
+```
+
+# Gene Input
+
+```{r load-genes}
+file_path_worm <- "./05-2026/list of genes_resubmission.xlsx"
+worm_df <- readxl::read_excel(file_path_worm)
+
+wb_col <- grep("WormBase.*Gene|WBGene", names(worm_df),
+               ignore.case = TRUE, value = TRUE)[1]
+sym_col <- grep("^Gene$|Gene.*[Ss]ymbol|[Ss]ymbol|gene.*name",
+                names(worm_df), ignore.case = TRUE, value = TRUE)[1]
+
+cat("Input file:", file_path_worm, "\n")
+cat("Total input genes:", nrow(worm_df), "\n")
+cat("WormBase ID column:", wb_col, "\n")
+cat("Gene symbol column:", sym_col, "\n")
+```
+
+# ID Mapping
+
+```{r id-mapping}
+map_to_entrez <- function(ids, from_type) {
+  ids <- na.omit(unique(ids))
+  if (length(ids) == 0) {
+    return(data.frame(ENTREZID = character()))
+  }
+
+  suppressMessages(
+    clusterProfiler::bitr(
+      ids,
+      fromType = from_type,
+      toType = "ENTREZID",
+      OrgDb = org.Ce.eg.db
+    )
+  )
+}
+
+wb_ids <- if (!is.na(wb_col)) na.omit(unique(worm_df[[wb_col]])) else character()
+sym_ids <- if (!is.na(sym_col)) na.omit(unique(worm_df[[sym_col]])) else character()
+
+map_wb <- map_to_entrez(wb_ids, "WORMBASE")
+map_sym <- map_to_entrez(sym_ids, "SYMBOL")
+
+mapping_summary <- data.frame(
+  `ID type` = c("WormBase (WORMBASE)", "Gene Symbol (SYMBOL)"),
+  `Input genes` = c(length(wb_ids), length(sym_ids)),
+  `Mapped Entrez IDs` = c(
+    length(unique(map_wb$ENTREZID)),
+    length(unique(map_sym$ENTREZID))
+  ),
+  check.names = FALSE
+)
+
+knitr::kable(
+  mapping_summary,
+  booktabs = TRUE,
+  caption = "Entrez ID mapping summary for the smaller gene set"
+) |>
+  kableExtra::kable_styling(
+    latex_options = c("hold_position", "striped"),
+    font_size = 10
+  )
+
+if (length(unique(map_sym$ENTREZID)) > length(unique(map_wb$ENTREZID))) {
+  worm_entrez <- unique(map_sym$ENTREZID)
+  id_method <- "Gene Symbol -> Entrez"
+} else {
+  worm_entrez <- unique(map_wb$ENTREZID)
+  id_method <- "WormBase ID -> Entrez"
+}
+
+cat("Selected mapping method:", id_method, "\n")
+cat("Mapped query genes:", length(worm_entrez), "\n")
+```
+
+# Manuscript-Style GO Enrichment
+
+GO over-representation analysis was performed using `enrichGO()` with BH
+multiple-testing correction. All terms were retained for reporting and plotting,
+but terms were considered significant only if they met the adjusted threshold
+used in the manuscript-style workflow.
+
+```{r run-enrichment}
+run_go <- function(ontology) {
+  clusterProfiler::enrichGO(
+    gene = worm_entrez,
+    OrgDb = org.Ce.eg.db,
+    keyType = "ENTREZID",
+    ont = ontology,
+    pAdjustMethod = "BH",
+    pvalueCutoff = 1,
+    qvalueCutoff = 1,
+    minGSSize = 3,
+    readable = TRUE
+  )
+}
+
+ego_ce_bp <- run_go("BP")
+ego_ce_mf <- run_go("MF")
+ego_ce_cc <- run_go("CC")
+
+bp_all <- ego_ce_bp@result
+mf_all <- ego_ce_mf@result
+cc_all <- ego_ce_cc@result
+
+result_summary <- data.frame(
+  Ontology = c("Biological Process", "Molecular Function", "Cellular Component"),
+  `Terms tested/returned` = c(nrow(bp_all), nrow(mf_all), nrow(cc_all)),
+  `Nominal raw p < 0.05` = c(
+    sum(bp_all$pvalue < 0.05, na.rm = TRUE),
+    sum(mf_all$pvalue < 0.05, na.rm = TRUE),
+    sum(cc_all$pvalue < 0.05, na.rm = TRUE)
+  ),
+  `Terms with BH adjusted p < 0.05` = c(
+    sum(bp_all$p.adjust < 0.05, na.rm = TRUE),
+    sum(mf_all$p.adjust < 0.05, na.rm = TRUE),
+    sum(cc_all$p.adjust < 0.05, na.rm = TRUE)
+  ),
+  `Terms with q < 0.2` = c(
+    sum(bp_all$qvalue < 0.2, na.rm = TRUE),
+    sum(mf_all$qvalue < 0.2, na.rm = TRUE),
+    sum(cc_all$qvalue < 0.2, na.rm = TRUE)
+  ),
+  check.names = FALSE
+)
+
+knitr::kable(
+  result_summary,
+  booktabs = TRUE,
+  caption = "Summary of manuscript-style GO enrichment results"
+) |>
+  kableExtra::kable_styling(
+    latex_options = c("hold_position", "striped"),
+    font_size = 10
+  )
+```
+
+## Biological Process
+
+```{r bp-results}
+if (nrow(bp_all) == 0) {
+  cat("No Biological Process GO terms were significant after BH correction.")
+} else {
+  bp_show <- bp_all |>
+    dplyr::arrange(pvalue) |>
+    dplyr::slice_head(n = 20) |>
+    dplyr::select(
+      ID, Description, GeneRatio, BgRatio, pvalue, p.adjust, qvalue, geneID, Count
+    )
+
+  knitr::kable(
+    bp_show,
+    booktabs = TRUE,
+    digits = 4,
+    caption = "C. elegans Biological Process GO results using manuscript method"
+  ) |>
+    kableExtra::kable_styling(
+      latex_options = c("scale_down", "hold_position", "striped"),
+      font_size = 8
+    )
+}
+```
+
+```{r bp-plot, echo=FALSE}
+ego_ce_bp_nominal <- ego_ce_bp
+ego_ce_bp_nominal@result <- bp_all |>
+  dplyr::filter(pvalue < 0.05) |>
+  dplyr::arrange(pvalue)
+ego_ce_bp_nominal@pvalueCutoff <- 1
+ego_ce_bp_nominal@qvalueCutoff <- 1
+
+if (nrow(ego_ce_bp_nominal@result) > 0) {
+  enrichplot::dotplot(
+    ego_ce_bp_nominal,
+    showCategory = min(20, nrow(ego_ce_bp_nominal@result)),
+    font.size = 8,
+    color = "pvalue",
+    orderBy = "pvalue"
+  ) +
+    ggplot2::ggtitle("C. elegans GO Enrichment - Biological Process") +
+    ggplot2::labs(
+      caption = "Exploratory nominal plot: raw p < 0.05 terms are shown; no terms pass BH-adjusted significance."
+    )
+} else {
+  plot.new()
+  text(0.5, 0.5, "No nominal BP terms with raw p < 0.05")
+}
+```
+
+## Molecular Function
+
+```{r mf-results}
+if (nrow(mf_all) == 0) {
+  cat("No Molecular Function GO terms were significant after BH correction.")
+} else {
+  mf_show <- mf_all |>
+    dplyr::arrange(pvalue) |>
+    dplyr::slice_head(n = 20) |>
+    dplyr::select(
+      ID, Description, GeneRatio, BgRatio, pvalue, p.adjust, qvalue, geneID, Count
+    )
+
+  knitr::kable(
+    mf_show,
+    booktabs = TRUE,
+    digits = 4,
+    caption = "C. elegans Molecular Function GO results using manuscript method"
+  ) |>
+    kableExtra::kable_styling(
+      latex_options = c("scale_down", "hold_position", "striped"),
+      font_size = 8
+    )
+}
+```
+
+```{r mf-plot, echo=FALSE}
+ego_ce_mf_nominal <- ego_ce_mf
+ego_ce_mf_nominal@result <- mf_all |>
+  dplyr::filter(pvalue < 0.05) |>
+  dplyr::arrange(pvalue)
+ego_ce_mf_nominal@pvalueCutoff <- 1
+ego_ce_mf_nominal@qvalueCutoff <- 1
+
+if (nrow(ego_ce_mf_nominal@result) > 0) {
+  enrichplot::dotplot(
+    ego_ce_mf_nominal,
+    showCategory = min(20, nrow(ego_ce_mf_nominal@result)),
+    font.size = 8,
+    color = "pvalue",
+    orderBy = "pvalue"
+  ) +
+    ggplot2::ggtitle("C. elegans GO Enrichment - Molecular Function") +
+    ggplot2::labs(
+      caption = "Exploratory nominal plot: raw p < 0.05 terms are shown; no terms pass BH-adjusted significance."
+    )
+} else {
+  plot.new()
+  text(0.5, 0.5, "No nominal MF terms with raw p < 0.05")
+}
+```
+
+## Cellular Component
+
+```{r cc-results}
+if (nrow(cc_all) == 0) {
+  cat("No Cellular Component GO terms were significant after BH correction.")
+} else {
+  cc_show <- cc_all |>
+    dplyr::arrange(pvalue) |>
+    dplyr::slice_head(n = 20) |>
+    dplyr::select(
+      ID, Description, GeneRatio, BgRatio, pvalue, p.adjust, qvalue, geneID, Count
+    )
+
+  knitr::kable(
+    cc_show,
+    booktabs = TRUE,
+    digits = 4,
+    caption = "C. elegans Cellular Component GO results using manuscript method"
+  ) |>
+    kableExtra::kable_styling(
+      latex_options = c("scale_down", "hold_position", "striped"),
+      font_size = 8
+    )
+}
+```
+
+```{r cc-plot, echo=FALSE}
+ego_ce_cc_nominal <- ego_ce_cc
+ego_ce_cc_nominal@result <- cc_all |>
+  dplyr::filter(pvalue < 0.05) |>
+  dplyr::arrange(pvalue)
+ego_ce_cc_nominal@pvalueCutoff <- 1
+ego_ce_cc_nominal@qvalueCutoff <- 1
+
+if (nrow(ego_ce_cc_nominal@result) > 0) {
+  enrichplot::dotplot(
+    ego_ce_cc_nominal,
+    showCategory = min(20, nrow(ego_ce_cc_nominal@result)),
+    font.size = 8,
+    color = "pvalue",
+    orderBy = "pvalue"
+  ) +
+    ggplot2::ggtitle("C. elegans GO Enrichment - Cellular Component") +
+    ggplot2::labs(
+      caption = "Exploratory nominal plot: raw p < 0.05 terms are shown; no terms pass BH-adjusted significance."
+    )
+} else {
+  plot.new()
+  text(0.5, 0.5, "No nominal CC terms with raw p < 0.05")
+}
+```
+
+# Export Results
+
+```{r export-results}
+out_dir <- "output_tables_smaller_gene_set_manuscript_method"
+dir.create(out_dir, showWarnings = FALSE)
+
+write.csv(bp_all, file.path(out_dir, "Worm_GO_BP_BH_corrected.csv"), row.names = FALSE)
+write.csv(mf_all, file.path(out_dir, "Worm_GO_MF_BH_corrected.csv"), row.names = FALSE)
+write.csv(cc_all, file.path(out_dir, "Worm_GO_CC_BH_corrected.csv"), row.names = FALSE)
+write.csv(result_summary, file.path(out_dir, "GO_BH_corrected_summary.csv"), row.names = FALSE)
+
+cat("Results exported to", out_dir, "\n")
+```
+
+# Conclusion
+
+Using the manuscript-style `clusterProfiler::enrichGO()` workflow with BH
+correction, the smaller *C. elegans* query set did not produce significant GO
+enrichment terms. This supports the interpretation that the lack of significance
+is due to the small query size and multiple-testing burden, rather than a failure
+of ID mapping. The later `topGO weight01` analysis should therefore be viewed as
+a hierarchy-aware follow-up method for extracting directional biological signal
+from a small, focused gene list.
+
+
