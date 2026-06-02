@@ -1,0 +1,10 @@
+"GO ID","Term","Contributing genes","Immediate parent GO term(s)","Annotated","In list","Expected","p (weight01)","p (classic)"
+"GO:0005634","nucleus","akir-1, mig-38, pnk-1, pry-1, sin-3, spe-6, vps-72","GO:0043231 (intracellular membrane-bounded organelle)",2920,7,3.74,0.0327,0.0579
+"GO:0000785","chromatin","akir-1, sin-3","GO:0005694 (chromosome); GO:0110165 (cellular anatomical structure)",251,2,0.32,0.0401,0.0401
+"GO:0030667","secretory granule membrane","tom-1","GO:0030141 (secretory granule); GO:0030659 (cytoplasmic vesicle membrane); GO:0098588 (bounding membrane of organelle)",4,1,0.01,0.0051,0.0051
+"GO:0098981","cholinergic synapse","tom-1","GO:0045202 (synapse)",6,1,0.01,0.0077,0.0077
+"GO:0031312","extrinsic component of organelle membrane","tom-1","GO:0019898 (extrinsic component of membrane); GO:0031090 (organelle membrane); GO:0043229 (intracellular organelle)",10,1,0.01,0.0127,0.0127
+"GO:0031045","dense core granule","tom-1","GO:0030141 (secretory granule)",10,1,0.01,0.0127,0.0127
+"GO:0031594","neuromuscular junction","tom-1","GO:0045202 (synapse)",19,1,0.02,0.0241,0.0241
+"GO:0000118","histone deacetylase complex","sin-3","GO:0005654 (nucleoplasm); GO:0140513 (nuclear protein-containing complex); GO:1902494 (catalytic complex)",28,1,0.04,0.0353,0.0353
+"GO:0031201","SNARE complex","tom-1","GO:0005737 (cytoplasm); GO:0098796 (membrane protein complex)",32,1,0.04,0.0402,0.0402

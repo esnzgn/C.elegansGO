@@ -194,6 +194,83 @@ build_gene2go <- function(ontology) {
 bp_gene2go <- build_gene2go("BP")
 mf_gene2go <- build_gene2go("MF")
 cc_gene2go <- build_gene2go("CC")
+
+query_gene_labels <- AnnotationDbi::select(
+  org.Ce.eg.db,
+  keys = final_entrez,
+  keytype = "ENTREZID",
+  columns = c("SYMBOL")
+) |>
+  dplyr::mutate(
+    ENTREZID = as.character(ENTREZID),
+    gene_label = dplyr::if_else(is.na(SYMBOL) | SYMBOL == "", ENTREZID, SYMBOL)
+  ) |>
+  dplyr::distinct(ENTREZID, .keep_all = TRUE)
+
+label_query_genes <- function(entrez_ids) {
+  labels <- query_gene_labels$gene_label[
+    match(as.character(entrez_ids), query_gene_labels$ENTREZID)
+  ]
+  labels <- labels[!is.na(labels)]
+  if (length(labels) == 0) {
+    return("")
+  }
+  paste(sort(unique(labels)), collapse = ", ")
+}
+
+full_go_term <- function(go_id) {
+  term <- tryCatch(AnnotationDbi::Term(GO.db::GOTERM[[go_id]]), error = function(e) NA_character_)
+  ifelse(is.na(term), go_id, term)
+}
+
+go_parent_terms <- function(go_id, ontology) {
+  parent_env <- switch(
+    ontology,
+    BP = GO.db::GOBPPARENTS,
+    MF = GO.db::GOMFPARENTS,
+    CC = GO.db::GOCCPARENTS
+  )
+  parents <- tryCatch(as.list(parent_env[go_id])[[1]], error = function(e) character())
+  parent_ids <- unname(parents)
+  parent_ids <- parent_ids[!is.na(parent_ids)]
+  if (length(parent_ids) == 0) {
+    return("")
+  }
+
+  parent_labels <- vapply(parent_ids, function(parent_id) {
+    paste0(parent_id, " (", full_go_term(parent_id), ")")
+  }, character(1))
+  paste(parent_labels, collapse = "; ")
+}
+
+contributing_genes_for_go <- function(go_id, go_data) {
+  term_genes <- tryCatch(topGO::genesInTerm(go_data, go_id)[[go_id]], error = function(e) character())
+  term_genes <- intersect(as.character(term_genes), as.character(final_entrez))
+  label_query_genes(term_genes)
+}
+
+format_topgo_table <- function(result_table, go_data, ontology) {
+  result_table |>
+    dplyr::filter(weight01 < 0.05) |>
+    dplyr::mutate(
+      Term = vapply(GO.ID, full_go_term, character(1)),
+      `Contributing genes` = vapply(GO.ID, contributing_genes_for_go, character(1), go_data = go_data),
+      `Immediate parent GO term(s)` = vapply(GO.ID, go_parent_terms, character(1), ontology = ontology)
+    ) |>
+    dplyr::arrange(dplyr::desc(Significant), weight01) |>
+    dplyr::select(
+      GO.ID, Term, `Contributing genes`, `Immediate parent GO term(s)`,
+      Annotated, Significant, Expected, weight01, classic
+    ) |>
+    dplyr::rename(
+      `GO ID` = GO.ID,
+      `Annotated` = Annotated,
+      `In list` = Significant,
+      `Expected` = Expected,
+      `p (weight01)` = weight01,
+      `p (classic)` = classic
+    )
+}
 ```
 
 ## Biological Process (BP)
@@ -223,6 +300,7 @@ bp_table <- GenTable(
 
 bp_table$weight01 <- as.numeric(bp_table$weight01)
 bp_table$classic  <- as.numeric(bp_table$classic)
+bp_table$Term <- vapply(bp_table$GO.ID, full_go_term, character(1))
 
 cat("BP terms tested (weight01):", length(score(res_bp_w)), "\n")
 cat("BP terms with weight01 p < 0.05:", sum(bp_table$weight01 < 0.05, na.rm = TRUE), "\n")
@@ -233,27 +311,18 @@ cat("BP terms with weight01 p < 0.01:", sum(bp_table$weight01 < 0.01, na.rm = TR
 
 ```{r bp-table, echo=FALSE}
 bp_sig <- bp_table |>
-  dplyr::filter(weight01 < 0.05) |>
-  dplyr::arrange(weight01) |>
-  dplyr::select(GO.ID, Term, Annotated, Significant, Expected, weight01, classic) |>
-  dplyr::rename(
-    `GO ID`      = GO.ID,
-    `Term`       = Term,
-    `Annotated`  = Annotated,
-    `In list`    = Significant,
-    `Expected`   = Expected,
-    `p (weight01)` = weight01,
-    `p (classic)`  = classic
-  )
+  format_topgo_table(go_bp, "BP")
 
 if (nrow(bp_sig) == 0) {
   cat("No BP terms reach p < 0.05 under weight01 algorithm.")
 } else {
-  kable(bp_sig, booktabs = TRUE, digits = 4, align = "llrrrll",
+  kable(bp_sig, booktabs = TRUE, digits = 4,
         caption = "Significant BP GO terms (topGO weight01, p < 0.05)") |>
     kable_styling(latex_options = c("scale_down", "hold_position", "striped"),
                   font_size = 9) |>
-    column_spec(2, width = "7cm")
+    column_spec(2, width = "8cm") |>
+    column_spec(3, width = "4cm") |>
+    column_spec(4, width = "8cm")
 }
 ```
 
@@ -325,6 +394,7 @@ mf_table <- GenTable(
 
 mf_table$weight01 <- as.numeric(mf_table$weight01)
 mf_table$classic  <- as.numeric(mf_table$classic)
+mf_table$Term <- vapply(mf_table$GO.ID, full_go_term, character(1))
 
 cat("MF terms tested:", length(score(res_mf_w)), "\n")
 cat("MF terms with weight01 p < 0.05:", sum(mf_table$weight01 < 0.05, na.rm = TRUE), "\n")
@@ -334,27 +404,18 @@ cat("MF terms with weight01 p < 0.05:", sum(mf_table$weight01 < 0.05, na.rm = TR
 
 ```{r mf-table, echo=FALSE}
 mf_sig <- mf_table |>
-  dplyr::filter(weight01 < 0.05) |>
-  dplyr::arrange(weight01) |>
-  dplyr::select(GO.ID, Term, Annotated, Significant, Expected, weight01, classic) |>
-  dplyr::rename(
-    `GO ID`      = GO.ID,
-    `Term`       = Term,
-    `Annotated`  = Annotated,
-    `In list`    = Significant,
-    `Expected`   = Expected,
-    `p (weight01)` = weight01,
-    `p (classic)`  = classic
-  )
+  format_topgo_table(go_mf, "MF")
 
 if (nrow(mf_sig) == 0) {
   cat("No MF terms reach p < 0.05 under weight01 algorithm.")
 } else {
-  kable(mf_sig, booktabs = TRUE, digits = 4, align = "llrrrll",
+  kable(mf_sig, booktabs = TRUE, digits = 4,
         caption = "Significant MF GO terms (topGO weight01, p < 0.05)") |>
     kable_styling(latex_options = c("scale_down", "hold_position", "striped"),
                   font_size = 9) |>
-    column_spec(2, width = "7cm")
+    column_spec(2, width = "8cm") |>
+    column_spec(3, width = "4cm") |>
+    column_spec(4, width = "8cm")
 }
 ```
 
@@ -426,6 +487,7 @@ cc_table <- GenTable(
 
 cc_table$weight01 <- as.numeric(cc_table$weight01)
 cc_table$classic  <- as.numeric(cc_table$classic)
+cc_table$Term <- vapply(cc_table$GO.ID, full_go_term, character(1))
 
 cat("CC terms tested:", length(score(res_cc_w)), "\n")
 cat("CC terms with weight01 p < 0.05:", sum(cc_table$weight01 < 0.05, na.rm = TRUE), "\n")
@@ -435,27 +497,18 @@ cat("CC terms with weight01 p < 0.05:", sum(cc_table$weight01 < 0.05, na.rm = TR
 
 ```{r cc-table, echo=FALSE}
 cc_sig <- cc_table |>
-  dplyr::filter(weight01 < 0.05) |>
-  dplyr::arrange(weight01) |>
-  dplyr::select(GO.ID, Term, Annotated, Significant, Expected, weight01, classic) |>
-  dplyr::rename(
-    `GO ID`      = GO.ID,
-    `Term`       = Term,
-    `Annotated`  = Annotated,
-    `In list`    = Significant,
-    `Expected`   = Expected,
-    `p (weight01)` = weight01,
-    `p (classic)`  = classic
-  )
+  format_topgo_table(go_cc, "CC")
 
 if (nrow(cc_sig) == 0) {
   cat("No CC terms reach p < 0.05 under weight01 algorithm.")
 } else {
-  kable(cc_sig, booktabs = TRUE, digits = 4, align = "llrrrll",
+  kable(cc_sig, booktabs = TRUE, digits = 4,
         caption = "Significant CC GO terms (topGO weight01, p < 0.05)") |>
     kable_styling(latex_options = c("scale_down", "hold_position", "striped"),
                   font_size = 9) |>
-    column_spec(2, width = "7cm")
+    column_spec(2, width = "8cm") |>
+    column_spec(3, width = "4cm") |>
+    column_spec(4, width = "8cm")
 }
 ```
 
@@ -540,6 +593,9 @@ dir.create("output_tables", showWarnings = FALSE)
 write.csv(bp_table,              "output_tables/topGO_BP_results.csv", row.names = FALSE)
 write.csv(mf_table,              "output_tables/topGO_MF_results.csv", row.names = FALSE)
 write.csv(cc_table,              "output_tables/topGO_CC_results.csv", row.names = FALSE)
+write.csv(bp_sig,                "output_tables/topGO_BP_significant_enhanced.csv", row.names = FALSE)
+write.csv(mf_sig,                "output_tables/topGO_MF_significant_enhanced.csv", row.names = FALSE)
+write.csv(cc_sig,                "output_tables/topGO_CC_significant_enhanced.csv", row.names = FALSE)
 write.csv(bp_df |> dplyr::filter(pvalue < 0.05), "output_tables/clusterProfiler_BP_nominal.csv", row.names = FALSE)
 write.csv(mf_df |> dplyr::filter(pvalue < 0.05), "output_tables/clusterProfiler_MF_nominal.csv", row.names = FALSE)
 write.csv(cc_df |> dplyr::filter(pvalue < 0.05), "output_tables/clusterProfiler_CC_nominal.csv", row.names = FALSE)

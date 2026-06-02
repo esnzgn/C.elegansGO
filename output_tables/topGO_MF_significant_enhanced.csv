@@ -1,0 +1,14 @@
+"GO ID","Term","Contributing genes","Immediate parent GO term(s)","Annotated","In list","Expected","p (weight01)","p (classic)"
+"GO:0005102","signaling receptor binding","F26E4.5, gba-4","GO:0005515 (protein binding)",184,2,0.28,0.0317,0.0317
+"GO:0045159","myosin II binding","tom-1","GO:0017022 (myosin binding)",4,1,0.01,0.0061,0.0061
+"GO:0008131","primary methylamine oxidase activity","mig-38","GO:0016641 (oxidoreductase activity, acting on the CH-NH2 group of donors, oxygen as acceptor)",5,1,0.01,0.0077,0.0077
+"GO:0005247","voltage-gated chloride channel activity","clh-5","GO:0005254 (chloride channel activity); GO:0008308 (voltage-gated monoatomic anion channel activity)",5,1,0.01,0.0077,0.0077
+"GO:0004348","glucosylceramidase activity","gba-4","GO:0017042 (glycosylceramidase activity)",6,1,0.01,0.0092,0.0092
+"GO:0008474","palmitoyl-(protein) hydrolase activity","ath-1","GO:0016790 (thiolester hydrolase activity); GO:0098599 (palmitoyl hydrolase activity); GO:0140096 (catalytic activity, acting on a protein)",8,1,0.01,0.0123,0.0123
+"GO:0048038","quinone binding","mig-38","GO:0036094 (small molecule binding)",9,1,0.01,0.0138,0.0138
+"GO:0004300","enoyl-CoA hydratase activity","ech-7","GO:0016836 (hydro-lyase activity)",9,1,0.01,0.0138,0.0138
+"GO:0008013","beta-catenin binding","pry-1","GO:0005515 (protein binding)",13,1,0.02,0.0198,0.0198
+"GO:0004407","histone deacetylase activity","sin-3","GO:0033558 (protein lysine deacetylase activity); GO:0140993 (histone modifying activity)",13,1,0.02,0.0198,0.0198
+"GO:0005507","copper ion binding","mig-38","GO:0046914 (transition metal ion binding)",15,1,0.02,0.0229,0.0229
+"GO:1990756","ubiquitin-like ligase-substrate adaptor activity","pry-1","GO:0140767 (enzyme-substrate adaptor activity)",15,1,0.02,0.0229,0.0229
+"GO:0019905","syntaxin binding","tom-1","GO:0000149 (SNARE binding)",25,1,0.04,0.0378,0.0378
