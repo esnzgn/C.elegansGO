@@ -3,16 +3,16 @@ title: "C. elegans GO Enrichment Analysis"
 subtitle: Biological Process, Molecular Function & Cellular Component
 date: "`r format(Sys.Date(), '%B %d, %Y')`"
 output:
-  html_document:
-    toc: true
-    toc_depth: '3'
-    df_print: paged
   pdf_document:
     toc: true
     toc_depth: 3
     number_sections: true
     latex_engine: xelatex
     keep_tex: false
+  html_document:
+    toc: true
+    toc_depth: '3'
+    df_print: paged
 geometry: margin=2.5cm
 fontsize: 11pt
 ---
@@ -56,6 +56,7 @@ required_pkgs <- c(
   "readxl", "dplyr", "ggplot2", "forcats", "scales", "stringr",
   "clusterProfiler", "org.Ce.eg.db", "AnnotationDbi",
   "topGO", "Rgraphviz", "knitr", "kableExtra"
+  ,"tidyr", "readr"
 )
 
 missing_pkgs <- required_pkgs[
@@ -273,96 +274,96 @@ format_topgo_table <- function(result_table, go_data, ontology) {
 }
 ```
 
-## Biological Process (BP)
+## old Biological Process (BP)
 
 ```{r topgo-bp, echo=TRUE, cache=FALSE}
-go_bp <- new("topGOdata",
-  ontology   = "BP",
-  allGenes   = gene_vec,
-  geneSel    = gene_sel,
-  annot      = annFUN.gene2GO,
-  gene2GO    = bp_gene2go,
-  nodeSize   = 3         # min genes per GO term
-)
-
-res_bp_w  <- runTest(go_bp, algorithm = "weight01", statistic = "fisher")
-res_bp_cl <- runTest(go_bp, algorithm = "classic",  statistic = "fisher")
-
-n_bp <- min(100, length(score(res_bp_w)))
-bp_table <- GenTable(
-  go_bp,
-  weight01 = res_bp_w,
-  classic  = res_bp_cl,
-  orderBy  = "weight01",
-  ranksOf  = "classic",
-  topNodes = n_bp
-)
-
-bp_table$weight01 <- as.numeric(bp_table$weight01)
-bp_table$classic  <- as.numeric(bp_table$classic)
-bp_table$Term <- vapply(bp_table$GO.ID, full_go_term, character(1))
-
-cat("BP terms tested (weight01):", length(score(res_bp_w)), "\n")
-cat("BP terms with weight01 p < 0.05:", sum(bp_table$weight01 < 0.05, na.rm = TRUE), "\n")
-cat("BP terms with weight01 p < 0.01:", sum(bp_table$weight01 < 0.01, na.rm = TRUE), "\n")
+# go_bp <- new("topGOdata",
+#   ontology   = "BP",
+#   allGenes   = gene_vec,
+#   geneSel    = gene_sel,
+#   annot      = annFUN.gene2GO,
+#   gene2GO    = bp_gene2go,
+#   nodeSize   = 3         # min genes per GO term
+# )
+# 
+# res_bp_w  <- runTest(go_bp, algorithm = "weight01", statistic = "fisher")
+# res_bp_cl <- runTest(go_bp, algorithm = "classic",  statistic = "fisher")
+# 
+# n_bp <- min(100, length(score(res_bp_w)))
+# bp_table <- GenTable(
+#   go_bp,
+#   weight01 = res_bp_w,
+#   classic  = res_bp_cl,
+#   orderBy  = "weight01",
+#   ranksOf  = "classic",
+#   topNodes = n_bp
+# )
+# 
+# bp_table$weight01 <- as.numeric(bp_table$weight01)
+# bp_table$classic  <- as.numeric(bp_table$classic)
+# bp_table$Term <- vapply(bp_table$GO.ID, full_go_term, character(1))
+# 
+# cat("BP terms tested (weight01):", length(score(res_bp_w)), "\n")
+# cat("BP terms with weight01 p < 0.05:", sum(bp_table$weight01 < 0.05, na.rm = TRUE), "\n")
+# cat("BP terms with weight01 p < 0.01:", sum(bp_table$weight01 < 0.01, na.rm = TRUE), "\n")
 ```
 
 ### BP Results Table
 
 ```{r bp-table, echo=FALSE}
-bp_sig <- bp_table |>
-  format_topgo_table(go_bp, "BP")
-
-if (nrow(bp_sig) == 0) {
-  cat("No BP terms reach p < 0.05 under weight01 algorithm.")
-} else {
-  kable(bp_sig, booktabs = TRUE, digits = 4,
-        caption = "Significant BP GO terms (topGO weight01, p < 0.05)") |>
-    kable_styling(latex_options = c("scale_down", "hold_position", "striped"),
-                  font_size = 9) |>
-    column_spec(2, width = "8cm") |>
-    column_spec(3, width = "4cm") |>
-    column_spec(4, width = "8cm")
-}
+# bp_sig <- bp_table |>
+#   format_topgo_table(go_bp, "BP")
+# 
+# if (nrow(bp_sig) == 0) {
+#   cat("No BP terms reach p < 0.05 under weight01 algorithm.")
+# } else {
+#   kable(bp_sig, booktabs = TRUE, digits = 4,
+#         caption = "Significant BP GO terms (topGO weight01, p < 0.05)") |>
+#     kable_styling(latex_options = c("scale_down", "hold_position", "striped"),
+#                   font_size = 9) |>
+#     column_spec(2, width = "8cm") |>
+#     column_spec(3, width = "4cm") |>
+#     column_spec(4, width = "8cm")
+# }
 ```
 
 ### BP Enrichment Plot
 
 ```{r bp-plot, fig.height=5, fig.width=7, echo=FALSE}
-bp_plot_data <- bp_table |>
-  dplyr::filter(weight01 < 0.05) |>
-  dplyr::arrange(weight01) |>
-  dplyr::slice_head(n = 15) |>
-  dplyr::mutate(
-    log10_p  = -log10(weight01),
-    GeneRatio = Significant / Annotated,
-    Term     = stringr::str_wrap(Term, width = 45),
-    Term     = forcats::fct_reorder(Term, log10_p)
-  )
-
-if (nrow(bp_plot_data) > 0) {
-  ggplot(bp_plot_data, aes(x = log10_p, y = Term)) +
-    geom_point(aes(size = Significant, color = GeneRatio), alpha = 0.85) +
-    scale_color_gradient(low = "#74C2E1", high = "#1A4A82",
-                         name = "Gene Ratio\n(Sig/Annotated)") +
-    scale_size(range = c(3, 9), name = "Genes in list") +
-    labs(
-      x       = expression(-log[10]~italic(p)~"(weight01)"),
-      y       = "GO Term",
-      title   = expression(italic("C. elegans")~"GO Enrichment — Biological Process"),
-      caption = "topGO weight01 Fisher's exact; node size ≥ 3 annotated genes"
-    ) +
-    theme_minimal(base_size = 10) +
-    theme(
-      axis.text.y  = element_text(size = 8),
-      plot.title   = element_text(hjust = 0.5, face = "bold"),
-      plot.caption = element_text(size = 7, color = "grey50"),
-      panel.border = element_rect(color = "black", fill = NA, linewidth = 0.6),
-      legend.key.size = unit(0.5, "cm")
-    )
-} else {
-  message("No significant BP terms to plot.")
-}
+# bp_plot_data <- bp_table |>
+#   dplyr::filter(weight01 < 0.05) |>
+#   dplyr::arrange(weight01) |>
+#   dplyr::slice_head(n = 15) |>
+#   dplyr::mutate(
+#     log10_p  = -log10(weight01),
+#     GeneRatio = Significant / Annotated,
+#     Term     = stringr::str_wrap(Term, width = 45),
+#     Term     = forcats::fct_reorder(Term, log10_p)
+#   )
+# 
+# if (nrow(bp_plot_data) > 0) {
+#   ggplot(bp_plot_data, aes(x = log10_p, y = Term)) +
+#     geom_point(aes(size = Significant, color = GeneRatio), alpha = 0.85) +
+#     scale_color_gradient(low = "#74C2E1", high = "#1A4A82",
+#                          name = "Gene Ratio\n(Sig/Annotated)") +
+#     scale_size(range = c(3, 9), name = "Genes in list") +
+#     labs(
+#       x       = expression(-log[10]~italic(p)~"(weight01)"),
+#       y       = "GO Term",
+#       title   = expression(italic("C. elegans")~"GO Enrichment — Biological Process"),
+#       caption = "topGO weight01 Fisher's exact; node size ≥ 3 annotated genes"
+#     ) +
+#     theme_minimal(base_size = 10) +
+#     theme(
+#       axis.text.y  = element_text(size = 8),
+#       plot.title   = element_text(hjust = 0.5, face = "bold"),
+#       plot.caption = element_text(size = 7, color = "grey50"),
+#       panel.border = element_rect(color = "black", fill = NA, linewidth = 0.6),
+#       legend.key.size = unit(0.5, "cm")
+#     )
+# } else {
+#   message("No significant BP terms to plot.")
+# }
 ```
 
 ---
@@ -370,92 +371,92 @@ if (nrow(bp_plot_data) > 0) {
 ## Molecular Function (MF)
 
 ```{r topgo-mf, echo=TRUE, cache=FALSE}
-go_mf <- new("topGOdata",
-  ontology   = "MF",
-  allGenes   = gene_vec,
-  geneSel    = gene_sel,
-  annot      = annFUN.gene2GO,
-  gene2GO    = mf_gene2go,
-  nodeSize   = 3
-)
-
-res_mf_w  <- runTest(go_mf, algorithm = "weight01", statistic = "fisher")
-res_mf_cl <- runTest(go_mf, algorithm = "classic",  statistic = "fisher")
-
-n_mf <- min(100, length(score(res_mf_w)))
-mf_table <- GenTable(
-  go_mf,
-  weight01 = res_mf_w,
-  classic  = res_mf_cl,
-  orderBy  = "weight01",
-  ranksOf  = "classic",
-  topNodes = n_mf
-)
-
-mf_table$weight01 <- as.numeric(mf_table$weight01)
-mf_table$classic  <- as.numeric(mf_table$classic)
-mf_table$Term <- vapply(mf_table$GO.ID, full_go_term, character(1))
-
-cat("MF terms tested:", length(score(res_mf_w)), "\n")
-cat("MF terms with weight01 p < 0.05:", sum(mf_table$weight01 < 0.05, na.rm = TRUE), "\n")
+# go_mf <- new("topGOdata",
+#   ontology   = "MF",
+#   allGenes   = gene_vec,
+#   geneSel    = gene_sel,
+#   annot      = annFUN.gene2GO,
+#   gene2GO    = mf_gene2go,
+#   nodeSize   = 3
+# )
+# 
+# res_mf_w  <- runTest(go_mf, algorithm = "weight01", statistic = "fisher")
+# res_mf_cl <- runTest(go_mf, algorithm = "classic",  statistic = "fisher")
+# 
+# n_mf <- min(100, length(score(res_mf_w)))
+# mf_table <- GenTable(
+#   go_mf,
+#   weight01 = res_mf_w,
+#   classic  = res_mf_cl,
+#   orderBy  = "weight01",
+#   ranksOf  = "classic",
+#   topNodes = n_mf
+# )
+# 
+# mf_table$weight01 <- as.numeric(mf_table$weight01)
+# mf_table$classic  <- as.numeric(mf_table$classic)
+# mf_table$Term <- vapply(mf_table$GO.ID, full_go_term, character(1))
+# 
+# cat("MF terms tested:", length(score(res_mf_w)), "\n")
+# cat("MF terms with weight01 p < 0.05:", sum(mf_table$weight01 < 0.05, na.rm = TRUE), "\n")
 ```
 
 ### MF Results Table
 
 ```{r mf-table, echo=FALSE}
-mf_sig <- mf_table |>
-  format_topgo_table(go_mf, "MF")
-
-if (nrow(mf_sig) == 0) {
-  cat("No MF terms reach p < 0.05 under weight01 algorithm.")
-} else {
-  kable(mf_sig, booktabs = TRUE, digits = 4,
-        caption = "Significant MF GO terms (topGO weight01, p < 0.05)") |>
-    kable_styling(latex_options = c("scale_down", "hold_position", "striped"),
-                  font_size = 9) |>
-    column_spec(2, width = "8cm") |>
-    column_spec(3, width = "4cm") |>
-    column_spec(4, width = "8cm")
-}
+# mf_sig <- mf_table |>
+#   format_topgo_table(go_mf, "MF")
+# 
+# if (nrow(mf_sig) == 0) {
+#   cat("No MF terms reach p < 0.05 under weight01 algorithm.")
+# } else {
+#   kable(mf_sig, booktabs = TRUE, digits = 4,
+#         caption = "Significant MF GO terms (topGO weight01, p < 0.05)") |>
+#     kable_styling(latex_options = c("scale_down", "hold_position", "striped"),
+#                   font_size = 9) |>
+#     column_spec(2, width = "8cm") |>
+#     column_spec(3, width = "4cm") |>
+#     column_spec(4, width = "8cm")
+# }
 ```
 
 ### MF Enrichment Plot
 
 ```{r mf-plot, fig.height=5, fig.width=7, echo=FALSE}
-mf_plot_data <- mf_table |>
-  dplyr::filter(weight01 < 0.05) |>
-  dplyr::arrange(weight01) |>
-  dplyr::slice_head(n = 15) |>
-  dplyr::mutate(
-    log10_p  = -log10(weight01),
-    GeneRatio = Significant / Annotated,
-    Term     = stringr::str_wrap(Term, width = 45),
-    Term     = forcats::fct_reorder(Term, log10_p)
-  )
-
-if (nrow(mf_plot_data) > 0) {
-  ggplot(mf_plot_data, aes(x = log10_p, y = Term)) +
-    geom_point(aes(size = Significant, color = GeneRatio), alpha = 0.85) +
-    scale_color_gradient(low = "#74C2E1", high = "#1A4A82",
-                         name = "Gene Ratio\n(Sig/Annotated)") +
-    scale_size(range = c(3, 9), name = "Genes in list") +
-    labs(
-      x       = expression(-log[10]~italic(p)~"(weight01)"),
-      y       = "GO Term",
-      title   = expression(italic("C. elegans")~"GO Enrichment — Molecular Function"),
-      caption = "topGO weight01 Fisher's exact; node size ≥ 3 annotated genes"
-    ) +
-    theme_minimal(base_size = 10) +
-    theme(
-      axis.text.y  = element_text(size = 8),
-      plot.title   = element_text(hjust = 0.5, face = "bold"),
-      plot.caption = element_text(size = 7, color = "grey50"),
-      panel.border = element_rect(color = "black", fill = NA, linewidth = 0.6),
-      legend.key.size = unit(0.5, "cm")
-    )
-} else {
-  message("No significant MF terms to plot.")
-}
+# mf_plot_data <- mf_table |>
+#   dplyr::filter(weight01 < 0.05) |>
+#   dplyr::arrange(weight01) |>
+#   dplyr::slice_head(n = 15) |>
+#   dplyr::mutate(
+#     log10_p  = -log10(weight01),
+#     GeneRatio = Significant / Annotated,
+#     Term     = stringr::str_wrap(Term, width = 45),
+#     Term     = forcats::fct_reorder(Term, log10_p)
+#   )
+# 
+# if (nrow(mf_plot_data) > 0) {
+#   ggplot(mf_plot_data, aes(x = log10_p, y = Term)) +
+#     geom_point(aes(size = Significant, color = GeneRatio), alpha = 0.85) +
+#     scale_color_gradient(low = "#74C2E1", high = "#1A4A82",
+#                          name = "Gene Ratio\n(Sig/Annotated)") +
+#     scale_size(range = c(3, 9), name = "Genes in list") +
+#     labs(
+#       x       = expression(-log[10]~italic(p)~"(weight01)"),
+#       y       = "GO Term",
+#       title   = expression(italic("C. elegans")~"GO Enrichment — Molecular Function"),
+#       caption = "topGO weight01 Fisher's exact; node size ≥ 3 annotated genes"
+#     ) +
+#     theme_minimal(base_size = 10) +
+#     theme(
+#       axis.text.y  = element_text(size = 8),
+#       plot.title   = element_text(hjust = 0.5, face = "bold"),
+#       plot.caption = element_text(size = 7, color = "grey50"),
+#       panel.border = element_rect(color = "black", fill = NA, linewidth = 0.6),
+#       legend.key.size = unit(0.5, "cm")
+#     )
+# } else {
+#   message("No significant MF terms to plot.")
+# }
 ```
 
 ---
@@ -463,94 +464,321 @@ if (nrow(mf_plot_data) > 0) {
 ## Cellular Component (CC)
 
 ```{r topgo-cc, echo=TRUE, cache=FALSE}
-go_cc <- new("topGOdata",
-  ontology   = "CC",
-  allGenes   = gene_vec,
-  geneSel    = gene_sel,
-  annot      = annFUN.gene2GO,
-  gene2GO    = cc_gene2go,
-  nodeSize   = 3
-)
-
-res_cc_w  <- runTest(go_cc, algorithm = "weight01", statistic = "fisher")
-res_cc_cl <- runTest(go_cc, algorithm = "classic",  statistic = "fisher")
-
-n_cc <- min(100, length(score(res_cc_w)))
-cc_table <- GenTable(
-  go_cc,
-  weight01 = res_cc_w,
-  classic  = res_cc_cl,
-  orderBy  = "weight01",
-  ranksOf  = "classic",
-  topNodes = n_cc
-)
-
-cc_table$weight01 <- as.numeric(cc_table$weight01)
-cc_table$classic  <- as.numeric(cc_table$classic)
-cc_table$Term <- vapply(cc_table$GO.ID, full_go_term, character(1))
-
-cat("CC terms tested:", length(score(res_cc_w)), "\n")
-cat("CC terms with weight01 p < 0.05:", sum(cc_table$weight01 < 0.05, na.rm = TRUE), "\n")
+# go_cc <- new("topGOdata",
+#   ontology   = "CC",
+#   allGenes   = gene_vec,
+#   geneSel    = gene_sel,
+#   annot      = annFUN.gene2GO,
+#   gene2GO    = cc_gene2go,
+#   nodeSize   = 3
+# )
+# 
+# res_cc_w  <- runTest(go_cc, algorithm = "weight01", statistic = "fisher")
+# res_cc_cl <- runTest(go_cc, algorithm = "classic",  statistic = "fisher")
+# 
+# n_cc <- min(100, length(score(res_cc_w)))
+# cc_table <- GenTable(
+#   go_cc,
+#   weight01 = res_cc_w,
+#   classic  = res_cc_cl,
+#   orderBy  = "weight01",
+#   ranksOf  = "classic",
+#   topNodes = n_cc
+# )
+# 
+# cc_table$weight01 <- as.numeric(cc_table$weight01)
+# cc_table$classic  <- as.numeric(cc_table$classic)
+# cc_table$Term <- vapply(cc_table$GO.ID, full_go_term, character(1))
+# 
+# cat("CC terms tested:", length(score(res_cc_w)), "\n")
+# cat("CC terms with weight01 p < 0.05:", sum(cc_table$weight01 < 0.05, na.rm = TRUE), "\n")
 ```
 
 ### CC Results Table
 
 ```{r cc-table, echo=FALSE}
-cc_sig <- cc_table |>
-  format_topgo_table(go_cc, "CC")
-
-if (nrow(cc_sig) == 0) {
-  cat("No CC terms reach p < 0.05 under weight01 algorithm.")
-} else {
-  kable(cc_sig, booktabs = TRUE, digits = 4,
-        caption = "Significant CC GO terms (topGO weight01, p < 0.05)") |>
-    kable_styling(latex_options = c("scale_down", "hold_position", "striped"),
-                  font_size = 9) |>
-    column_spec(2, width = "8cm") |>
-    column_spec(3, width = "4cm") |>
-    column_spec(4, width = "8cm")
-}
+# cc_sig <- cc_table |>
+#   format_topgo_table(go_cc, "CC")
+# 
+# if (nrow(cc_sig) == 0) {
+#   cat("No CC terms reach p < 0.05 under weight01 algorithm.")
+# } else {
+#   kable(cc_sig, booktabs = TRUE, digits = 4,
+#         caption = "Significant CC GO terms (topGO weight01, p < 0.05)") |>
+#     kable_styling(latex_options = c("scale_down", "hold_position", "striped"),
+#                   font_size = 9) |>
+#     column_spec(2, width = "8cm") |>
+#     column_spec(3, width = "4cm") |>
+#     column_spec(4, width = "8cm")
+# }
 ```
 
 ### CC Enrichment Plot
 
 ```{r cc-plot, fig.height=5, fig.width=7, echo=FALSE}
-cc_plot_data <- cc_table |>
-  dplyr::filter(weight01 < 0.05) |>
-  dplyr::arrange(weight01) |>
-  dplyr::slice_head(n = 15) |>
-  dplyr::mutate(
-    log10_p  = -log10(weight01),
-    GeneRatio = Significant / Annotated,
-    Term     = stringr::str_wrap(Term, width = 45),
-    Term     = forcats::fct_reorder(Term, log10_p)
-  )
+# cc_plot_data <- cc_table |>
+#   dplyr::filter(weight01 < 0.05) |>
+#   dplyr::arrange(weight01) |>
+#   dplyr::slice_head(n = 15) |>
+#   dplyr::mutate(
+#     log10_p  = -log10(weight01),
+#     GeneRatio = Significant / Annotated,
+#     Term     = stringr::str_wrap(Term, width = 45),
+#     Term     = forcats::fct_reorder(Term, log10_p)
+#   )
+# 
+# if (nrow(cc_plot_data) > 0) {
+#   ggplot(cc_plot_data, aes(x = log10_p, y = Term)) +
+#     geom_point(aes(size = Significant, color = GeneRatio), alpha = 0.85) +
+#     scale_color_gradient(low = "#74C2E1", high = "#1A4A82",
+#                          name = "Gene Ratio\n(Sig/Annotated)") +
+#     scale_size(range = c(3, 9), name = "Genes in list") +
+#     labs(
+#       x       = expression(-log[10]~italic(p)~"(weight01)"),
+#       y       = "GO Term",
+#       title   = expression(italic("C. elegans")~"GO Enrichment — Cellular Component"),
+#       caption = "topGO weight01 Fisher's exact; node size ≥ 3 annotated genes"
+#     ) +
+#     theme_minimal(base_size = 10) +
+#     theme(
+#       axis.text.y  = element_text(size = 8),
+#       plot.title   = element_text(hjust = 0.5, face = "bold"),
+#       plot.caption = element_text(size = 7, color = "grey50"),
+#       panel.border = element_rect(color = "black", fill = NA, linewidth = 0.6),
+#       legend.key.size = unit(0.5, "cm")
+#     )
+# } else {
+#   message("No significant CC terms to plot.")
+# }
+```
 
-if (nrow(cc_plot_data) > 0) {
-  ggplot(cc_plot_data, aes(x = log10_p, y = Term)) +
-    geom_point(aes(size = Significant, color = GeneRatio), alpha = 0.85) +
-    scale_color_gradient(low = "#74C2E1", high = "#1A4A82",
-                         name = "Gene Ratio\n(Sig/Annotated)") +
-    scale_size(range = c(3, 9), name = "Genes in list") +
-    labs(
-      x       = expression(-log[10]~italic(p)~"(weight01)"),
-      y       = "GO Term",
-      title   = expression(italic("C. elegans")~"GO Enrichment — Cellular Component"),
-      caption = "topGO weight01 Fisher's exact; node size ≥ 3 annotated genes"
-    ) +
-    theme_minimal(base_size = 10) +
-    theme(
-      axis.text.y  = element_text(size = 8),
-      plot.title   = element_text(hjust = 0.5, face = "bold"),
-      plot.caption = element_text(size = 7, color = "grey50"),
-      panel.border = element_rect(color = "black", fill = NA, linewidth = 0.6),
-      legend.key.size = unit(0.5, "cm")
+```{r Grouped GO bubble plots based, echo=TRUE}
+
+# ============================================================
+# Grouped GO bubble plots based on Elisa's Excel file
+# ============================================================
+
+library(readxl)
+library(dplyr)
+library(tidyr)
+library(readr)
+library(stringr)
+library(ggplot2)
+library(scales)
+
+# Change this path to where Elisa's Excel file is saved
+grouped_go_file <- "./05-2026/gene ontology enrichment.xlsx"
+
+# Your current Rmd creates gene_vec earlier.
+# If this gives an error, manually set query_gene_total <- 18
+query_gene_total <- if (exists("gene_vec")) sum(gene_vec) else 18
+
+
+read_grouped_go_sheet <- function(file, sheet, ontology, query_n = query_gene_total) {
+  
+  ontology <- match.arg(ontology, c("BP", "CC"))
+  
+  raw <- readxl::read_excel(
+    file,
+    sheet = sheet,
+    skip = 1,
+    col_names = FALSE,
+    col_types = "text"
+  )
+  
+  if (ontology == "BP") {
+    names(raw)[1:11] <- c(
+      "PlotFlag", "Group", "GO.ID", "Term", "Contributing.genes",
+      "Annotated", "Significant", "Expected", "weight01", "classic", "Parent"
     )
-} else {
-  message("No significant CC terms to plot.")
+  } else {
+    names(raw)[1:10] <- c(
+      "Group", "GO.ID", "Term", "Contributing.genes", "Parent",
+      "Annotated", "Significant", "Expected", "weight01", "classic"
+    )
+    raw$PlotFlag <- NA_character_
+  }
+  
+  raw %>%
+    mutate(
+      row_id = row_number(),
+      PlotFlag = na_if(str_squish(as.character(PlotFlag)), ""),
+      Group = na_if(str_squish(as.character(Group)), ""),
+      GO.ID = str_squish(as.character(GO.ID)),
+      Term = str_squish(as.character(Term))
+    ) %>%
+    tidyr::fill(Group, .direction = "down") %>%
+    filter(!is.na(GO.ID), str_detect(GO.ID, "^GO:")) %>%
+    mutate(
+      Annotated = readr::parse_number(Annotated),
+      Count = readr::parse_number(Significant),
+      weight01 = as.numeric(weight01),
+      log10_p = -log10(weight01),
+      GeneRatio = Count / query_n,
+      GeneRatio_label = paste0(Count, "/", query_n),
+      Previous_finding = !is.na(PlotFlag),
+      Group = factor(Group, levels = unique(Group))
+    )
+}
+
+
+make_grouped_go_bubble <- function(plot_df,
+                                   plot_title,
+                                   y_axis_title,
+                                   wrap_width = 52,
+                                   point_size_range = c(2.5, 8)) {
+  
+  plot_df <- plot_df %>%
+    arrange(Group, row_id) %>%
+    mutate(
+      Term_label = if_else(Previous_finding, paste0("★ ", Term), Term),
+      Term_label = stringr::str_wrap(Term_label, width = wrap_width),
+      Term_label = factor(Term_label, levels = rev(unique(Term_label))),
+      GeneRatio_label = factor(
+        GeneRatio_label,
+        levels = unique(GeneRatio_label[order(Count)])
+      )
+    )
+  
+  ratio_levels <- levels(plot_df$GeneRatio_label)
+  ratio_cols <- setNames(
+    rep(
+      c("#F28E2B", "#4E9CD1", "#BDBDBD", "#7F7F7F", "#59A14F", "#E15759"),
+      length.out = length(ratio_levels)
+    ),
+    ratio_levels
+  )
+  
+  ggplot(plot_df, aes(x = log10_p, y = Term_label)) +
+    geom_point(
+      aes(size = Count, fill = GeneRatio_label),
+      shape = 21,
+      color = "black",
+      stroke = 0.25,
+      alpha = 0.90
+    ) +
+    facet_grid(
+      rows = vars(Group),
+      scales = "free_y",
+      space = "free_y",
+      switch = "y"
+    ) +
+    scale_fill_manual(values = ratio_cols, name = "GeneRatio") +
+    scale_size(
+      range = point_size_range,
+      breaks = sort(unique(plot_df$Count)),
+      name = "Count"
+    ) +
+    scale_x_continuous(
+      limits = c(1.3, 2.3),
+      breaks = seq(1.3, 2.2, by = 0.3),
+      minor_breaks = seq(1.3, 2.3, by = 0.1),
+      expand = expansion(mult = c(0, 0))
+    ) +
+    labs(
+      x = expression(-log[10] ~ italic(p) ~ "(weight01)"),
+      y = y_axis_title,
+      title = plot_title,
+      caption = "Higher x-axis values indicate stronger enrichment. ★ = term marked as similar to previous findings."
+    ) +
+    theme_minimal(base_size = 9) +
+    theme(
+      panel.border = element_rect(color = "black", fill = NA, linewidth = 0.5),
+      panel.grid.major.x = element_line(color = "grey78", linewidth = 0.35),
+      panel.grid.minor.x = element_line(color = "grey88", linewidth = 0.18),
+      panel.grid.major.y = element_line(color = "grey88", linewidth = 0.25),
+      panel.grid.minor.y = element_blank(),
+      axis.text.y = element_text(size = 6.5),
+      axis.text.x = element_text(size = 8),
+      axis.title.x = element_text(size = 8, face = "bold"),
+      axis.title.y = element_text(size = 8, face = "bold"),
+      plot.title = element_text(hjust = 0.5, face = "bold", size = 10),
+      plot.caption = element_text(size = 6.5, color = "grey40"),
+      strip.placement = "outside",
+      strip.text.y.left = element_text(angle = 0, face = "bold", size = 7, hjust = 1),
+      panel.spacing.y = unit(0.35, "lines"),
+      legend.key.size = unit(0.45, "cm"),
+      legend.title = element_text(size = 8),
+      legend.text = element_text(size = 7)
+    )
 }
 ```
 
+```{r generate grouped BP and CC dt, echo=TRUE}
+bp_grouped <- read_grouped_go_sheet(
+  file = grouped_go_file,
+  sheet = "Biological process",
+  ontology = "BP"
+)
+
+cc_grouped <- read_grouped_go_sheet(
+  file = grouped_go_file,
+  sheet = "Cellular compartments",
+  ontology = "CC"
+)
+
+cat("BP terms in grouped bubble plot:", nrow(bp_grouped), "\n")
+cat("CC terms in grouped bubble plot:", nrow(cc_grouped), "\n")
+```
+
+
+
+```{r generate grouped BP and CC plots, echo=TRUE}
+
+bp_grouped_plot <- make_grouped_go_bubble(
+  bp_grouped,
+  plot_title = expression(italic("C. elegans")~"Biological Process: enriched GO Terms"),
+  y_axis_title = "Biological Process: enriched GO Terms",
+  wrap_width = 55,
+  point_size_range = c(2.3, 7.5)
+)
+
+cc_grouped_plot <- make_grouped_go_bubble(
+  cc_grouped,
+  plot_title = expression(italic("C. elegans")~"Cellular Compartment: enriched GO Terms"),
+  y_axis_title = "Cellular Compartment: enriched GO Terms",
+  wrap_width = 48,
+  point_size_range = c(2.5, 8)
+)
+
+bp_grouped_plot
+cc_grouped_plot
+```
+
+```{r generate grouped BP and CC plots, echo=TRUE}
+
+dir.create("figures", showWarnings = FALSE)
+
+ggsave(
+  filename = "figures/grouped_GO_BP_bubble.pdf",
+  plot = bp_grouped_plot,
+  width = 8.5,
+  height = 10.5
+)
+
+ggsave(
+  filename = "figures/grouped_GO_CC_bubble.pdf",
+  plot = cc_grouped_plot,
+  width = 7.5,
+  height = 5.5
+)
+
+ggsave(
+  filename = "figures/grouped_GO_BP_bubble.png",
+  plot = bp_grouped_plot,
+  width = 8.5,
+  height = 10.5,
+  dpi = 300
+)
+
+ggsave(
+  filename = "figures/grouped_GO_CC_bubble.png",
+  plot = cc_grouped_plot,
+  width = 7.5,
+  height = 5.5,
+  dpi = 300
+)
+```
 ---
 
 # clusterProfiler Nominal Reference (p < 0.05, unadjusted)
